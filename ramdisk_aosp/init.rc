@@ -294,7 +294,7 @@ on post-fs-data
     #setprop vold.post_fs_data_done 1
 
 # Include extra init file
-    import /init.mahdi.rc
+    import /init.custom.rc
 
 on boot
 # basic network init
