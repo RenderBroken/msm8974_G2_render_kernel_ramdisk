@@ -5,12 +5,6 @@ TIMESTAMP=`date +%Y-%m-%d.%H.%M.%S`;
 LOGS=/sdcard/logs;
 
 case $1 in
-	bootloader)
-		$BB echo `sh $DEVICE ToggleBootloader`;
-	;;
-	tamper)
-		$BB echo `sh $DEVICE ToggleTamper`;
-	;;
 	selinux)
 		if [[ ! -z $2 ]]; then
 			if [ $2 = "Enforcing" ]; then
@@ -21,6 +15,18 @@ case $1 in
 		fi;
 
 		$BB echo `getenforce`;
+	;;
+	fstrim)
+		$BB fstrim /system
+		$BB fstrim /data
+		$BB fstrim /cache
+
+		$BB echo "FSTRIM System, Data, and Cache.";
+	;;
+	updatetouchfirmware)
+		$BB echo 1 > /sys/devices/virtual/input/lge_touch/firmware
+
+		$BB echo "Updated Firmware.";
 	;;
 	optimizedb)
 		for i in `$BB find /data -iname "*.db"`; do

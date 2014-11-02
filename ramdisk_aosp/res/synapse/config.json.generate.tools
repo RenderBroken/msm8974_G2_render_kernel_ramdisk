@@ -40,6 +40,20 @@ cat << CTAG
 					label:"Optimize Databases",
 					action:"devtools optimizedb"
 				}},
+				{ SDescription:{
+					description:"Use this button to run FSTRIM on /data, /system/, and /cache."
+				}},
+				{ SButton:{
+					label:"FSTRIM Partitions",
+					action:"devtools fstrim"
+				}},
+				{ SDescription:{
+					description:"Use this button to update the touchscreen firmware an fix DT2W on AOSP Roms."
+				}},
+				{ SButton:{
+					label:"Update Touchscreen Firmware",
+					action:"devtools updatetouchfirmware"
+				}},
 			{ SPane:{
 				title:"Log Creation"
 			}},

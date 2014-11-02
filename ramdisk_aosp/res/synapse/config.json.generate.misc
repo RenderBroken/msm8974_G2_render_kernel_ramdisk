@@ -13,54 +13,17 @@ cat << CTAG
 						`sh $DEVICE TCPCongestionList`
 					]
 				}},
-			`if [ -d "/sys/module/workqueue/parameters/" ]; then
+			`if [ -f "/sys/module/workqueue/parameters/power_efficient" ]; then
+			PEWQ=\`bool /sys/module/workqueue/parameters/power_efficient\`
 				$BB echo '{ SPane:{
 					title:"Power Effecient Workqueue"
-				}},'
-				{ SCheckBox:{
-					label:"PE-WQ",
-					description:"Enabling Power-efficient Workqueues will help to reduce power consumption at the cost of slight performance overhead. By enabling this, PE workqueues are used for unbound scheduled work to save load on sibling CPU cores and queuing work on CPU 0.",
-					default:0,
-					action:"boolean /sys/module/workqueue/parameters/power_efficient",
 				}},
-			fi`
-			`if [ -d "/sys/kernel/power_suspend" ]; then
-				$BB echo '{ SPane:{
-					title:"Power Suspend"
-				}},'
-				if [ -f "/sys/kernel/power_suspend/power_suspend_mode" ]; then
-				PSM=\`$BB cat /sys/kernel/power_suspend/power_suspend_mode\`
-					$BB echo '{ SOptionList:{
-						title:"Power Suspend Mode",
-						description:"Kernel Mode, LCD Hooks & Highest Level Hook are automatic and managed by the kernel, to manually enable or disable the Power Suspend State choose User Mode.",
-						default:'$PSM',
-						action:"generic /sys/kernel/power_suspend/power_suspend_mode",
-						values:{
-							0:"Kernel Mode", 1:"User Mode", 2:"LCD Hooks", 3:"Highest Level Hook"
-						}
+					{ SCheckBox:{
+						label:"Enable",
+						description:"Enabling Power-efficient Workqueues will help to reduce power consumption at the cost of slight performance overhead. By enabling this, PE workqueues are used for unbound scheduled work to save load on sibling CPU cores and queuing work on CPU 0.",
+						default:'$PEWQ',
+						action:"boolean /sys/module/workqueue/parameters/power_efficient",
 					}},'
-				fi
-				if [ -f "/sys/kernel/power_suspend/power_suspend_state" ] && [ "\`$BB grep 1.2 /sys/kernel/power_suspend/power_suspend_version\`" ]; then
-				PSS=\`$BB cat /sys/kernel/power_suspend/power_suspend_state\`
-					$BB echo '{ SCheckBox:{
-						label:"Power Suspend State",
-						description:"Kernel power management driver when screen is off. Better battery savings if enabled. Note: You can only change this setting if Power Suspend Mode is in User Mode.",
-						default:'$PSS',
-						action:"powersuspend /sys/kernel/power_suspend/power_suspend_state"
-					}},'
-				fi
-				if [ -f "/sys/kernel/power_suspend/power_suspend_state" ] && [ "\`$BB grep 1.3 /sys/kernel/power_suspend/power_suspend_version\`" ]; then
-				PSS=\`$BB cat /sys/kernel/power_suspend/power_suspend_state\`
-					$BB echo '{ SSeekBar:{
-						title:"Power Suspend State",
-						description:"Kernel power management driver when screen is off. Better battery savings if enabled. Note: You can only change this setting if Power Suspend Mode is in User Mode.",
-						min:0,
-						max:2,
-						step:1,
-						default:'$PSS',
-						action:"powersuspend /sys/kernel/power_suspend/power_suspend_state"
-					}},'
-				fi
 			fi`
 			`if [ -f "/sys/module/sync/parameters/fsync_enabled" ]; then
 			FSYNC=\`bool /sys/module/sync/parameters/fsync_enabled\`
@@ -80,7 +43,7 @@ cat << CTAG
 					title:"FSYNC"
 				}},
 					{ SCheckBox:{
-						description:"Disable the sync operations of the filesystem, great increasing speed but decreasing data integrity, also could create reboot and kernel panic.",
+						description:"Disable the sync operations of the filesystem, great for increasing speed but decreases data integrity, also could create reboot and kernel panic.",
 						label:"Enable",
 						default:'$FSYNC',
 						action:"generic /sys/class/misc/fsynccontrol/fsync_enabled"
@@ -98,8 +61,8 @@ cat << CTAG
 						action:"generic /sys/kernel/dyn_fsync/Dyn_fsync_active"
 					}},'
 			fi`
-			`if [ -f "/sys/class/timed_output/vibrator/amp" ]; then
-			VIBRATOR=\`$BB cat /sys/class/timed_output/vibrator/amp\`
+			`if [ -f "/sys/devices/platform/tspdrv/nforce_timed" ]; then
+			VIBRATOR=\`$BB cat /sys/devices/platform/tspdrv/nforce_timed\`
 				$BB echo '{ SPane:{
 					title:"Vibrator Strength"
 				}},
@@ -110,7 +73,7 @@ cat << CTAG
 						min:0,
 						max:100,
 						default:'$VIBRATOR',
-						action:"generic /sys/class/timed_output/vibrator/amp"
+						action:"generic /sys/devices/platform/tspdrv/nforce_timed"
 					}},'
 			fi`
 			`if [ -f "/sys/devices/virtual/timed_output/vibrator/vtg_level" ]; then

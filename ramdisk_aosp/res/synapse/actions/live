@@ -11,11 +11,26 @@ case $1 in
 	CPUFrequency)
 		$BB echo `sh $DEVICE LiveCPUFrequency`;
 	;;
+	CPU_CORES_ON_OFF)
+		$BB echo `sh $DEVICE LiveCPU_CORES_ON_OFF`;
+	;;
 	CPUTemperature)
 		$BB echo `sh $DEVICE LiveCPUTemperature`;
 	;;
+	CPU_MAX_MIN_Freq)
+		$BB echo `sh $DEVICE LiveCPU_MAX_MIN_Freq`;
+	;;
 	GPUFrequency)
 		$BB echo `sh $DEVICE LiveGPUFrequency`;
+	;;
+	IOReadAheadSize)
+		$BB echo `sh $DEVICE LiveIOReadAheadSize`;
+	;;
+	IOScheduler)
+		$BB echo `sh $DEVICE LiveIOScheduler`;
+	;;
+	TCPCongestion)
+		$BB echo `sh $DEVICE LiveTCPCongestion`;
 	;;
 	Memory)
 		$BB echo `sh $DEVICE LiveMemory`;
@@ -31,5 +46,11 @@ case $1 in
 	;;
 	WakelocksKernel)
 		$BB echo `sh $DEVICE LiveWakelocksKernel`;
+	;;
+	DefaultGPUGovernor)
+		$BB echo `sh $DEVICE LiveDefaultGPUGovernor`;
+	;;
+	DefaultCPUGovernor)
+		$BB echo `sh $DEVICE LiveDefaultCPUGovernor`;
 	;;
 esac;

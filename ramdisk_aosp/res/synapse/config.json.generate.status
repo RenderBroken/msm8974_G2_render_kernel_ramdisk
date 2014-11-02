@@ -3,13 +3,19 @@ cat << CTAG
 	name:STATUS,
 		elements:[
 			{ SPane:{
-				title:"Battery Temperature:"
+				title:"CPU Cores State",
 			}},
 				{ SLiveLabel:{
-					refresh:3000,
-					style:italic,
-					action:"live BatteryTemperature"
-				}},
+				refresh:1000,
+				action:"live CPU_CORES_ON_OFF"
+			}},
+			{ SPane:{
+				title:"Current Active CPU Governor",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live DefaultCPUGovernor"
+			}},
 			{ SPane:{
 				title:"CPU Temperature:"
 			}},
@@ -18,6 +24,29 @@ cat << CTAG
 					style:italic,
 					action:"live CPUTemperature"
 				}},
+			{ SPane:{
+				title:"Battery Temperature:"
+			}},
+				{ SLiveLabel:{
+					refresh:3000,
+					style:italic,
+					action:"live BatteryTemperature"
+				}},
+			{ SPane:{
+				title:"Current GPU Frequency:"
+			}},
+				{ SLiveLabel:{
+					refresh:1000,
+					style:italic,
+					action:"live GPUFrequency"
+				}},
+			{ SPane:{
+				title:"Current GPU Governor:",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live DefaultGPUGovernor"
+			}},
 			{ SPane:{
 				title:"Memory:"
 			}},
@@ -55,6 +84,20 @@ cat << CTAG
 					style:italic,
 					action:"live Time 10 19"
 				}},
+			{ SPane:{
+				title:"MMC Current IO Scheduler:",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live IOScheduler"
+			}},
+			{ SPane:{
+				title:"NET Current TCP Congestion:",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live TCPCongestion"
+			}},
 			`if [ -f "/proc/wakelocks" ]; then
 				$BB echo '{ SPane:{
 					title:"Kernel Wakelocks (Top 10):"

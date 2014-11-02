@@ -14,6 +14,40 @@ case "$1" in
 			$BB echo "\"$CPUGOV\",";
 		done;
 	;;
+	LiveDefaultCPUGovernor)
+		CPU0_GOV=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor);
+		echo "CPU0 GOV";
+	;;
+	LiveCPU_CORES_ON_OFF)
+		CPU0_CORE_STATE=Active;
+		if [ "$(cat /sys/devices/system/cpu/cpu1/online)" == "1" ]; then
+			CPU1_CORE_STATE=Active;
+		else
+			CPU1_CORE_STATE=Sleeping;
+		fi;
+		if [ "$(cat /sys/devices/system/cpu/cpu2/online)" == "1" ]; then
+			CPU2_CORE_STATE=Active;
+		else
+			CPU2_CORE_STATE=Sleeping;
+		fi;
+		if [ "$(cat /sys/devices/system/cpu/cpu3/online)" == "1" ]; then
+			CPU3_CORE_STATE=Active;
+		else
+			CPU3_CORE_STATE=Sleeping;
+		fi;
+		echo "CPU0 IS: $CPU0_CORE_STATE@nCPU1 IS: $CPU1_CORE_STATE@nCPU2 IS: $CPU2_CORE_STATE@nCPU3 IS: $CPU3_CORE_STATE"
+	;;
+	LiveCPU_MAX_MIN_Freq)
+		CPU0_FREQMAX="$(expr `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq` / 1000)MHz"
+		CPU0_FREQMIN="$(expr `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq` / 1000)MHz"
+		CPU1_FREQMAX="$(expr `cat /sys/devices/system/cpu/cpufreq/all_cpus/scaling_max_freq_cpu1` / 1000)MHz"
+		CPU1_FREQMIN="$(expr `cat /sys/devices/system/cpu/cpufreq/all_cpus/scaling_min_freq_cpu1` / 1000)MHz"
+		CPU2_FREQMAX="$(expr `cat /sys/devices/system/cpu/cpufreq/all_cpus/scaling_max_freq_cpu2` / 1000)MHz"
+		CPU2_FREQMIN="$(expr `cat /sys/devices/system/cpu/cpufreq/all_cpus/scaling_min_freq_cpu2` / 1000)MHz"
+		CPU3_FREQMAX="$(expr `cat /sys/devices/system/cpu/cpufreq/all_cpus/scaling_max_freq_cpu3` / 1000)MHz"
+		CPU3_FREQMIN="$(expr `cat /sys/devices/system/cpu/cpufreq/all_cpus/scaling_min_freq_cpu3` / 1000)MHz"
+		echo "Max CPU0 Freq: $CPU0_FREQMAX@nMin CPU0 Freq: $CPU0_FREQMIN@nMax CPU1 Freq: $CPU1_FREQMAX@nMin CPU1 Freq: $CPU1_FREQMIN@nMax CPU2 Freq: $CPU2_FREQMAX@nMin CPU2 Freq: $CPU2_FREQMIN@nMax CPU3 Freq: $CPU3_FREQMAX@nMin CPU3 Freq: $CPU3_FREQMIN"
+	;;
 	DebugPVS)
 		$BB echo "PVS bin";
 	;;
@@ -67,12 +101,9 @@ case "$1" in
 	DirGPUMinPwrLevel)
 		$BB echo "/sys/devices/fdb00000.qcom,kgsl-3d0/devfreq/fdb00000.qcom,kgsl-3d0/min_freq";
 	;;
-	#DirGPUNumPwrLevels)
-	#	$BB echo "/sys/class/kgsl/kgsl-3d0/num_pwrlevels";
-	#;;
-	#DirGPUPolicy)
-	#	$BB echo "/sys/class/kgsl/kgsl-3d0/pwrscale/policy";
-	#;;
+	LiveDefaultGPUGovernor)
+		$BB echo "`$BB cat /sys/devices/fdb00000.qcom,kgsl-3d0/devfreq/fdb00000.qcom,kgsl-3d0/governor`"
+	;;
 	DirIOReadAheadSize)
 		$BB echo "/sys/block/mmcblk0/queue/read_ahead_kb";
 	;;
@@ -122,38 +153,6 @@ case "$1" in
 		BAT_H=`$BB cat /sys/class/power_supply/battery/health`;
 
 		$BB echo "$BAT_C°C | $BAT_F°F@nHealth: $BAT_H";
-	;;
-	LiveBootloader)
-		version=`getprop ro.bootloader`;
-
-		block=/dev/block/platform/msm_sdcc.1/by-name/aboot;
-		offset=1048080;
-		locked=00;
-		unlocked=01;
-		tamper=1048084;
-		false=00;
-		true=01;
-
-		lockstate=`$BB dd ibs=1 count=1 skip=$offset if=$block 2> /dev/null | $BB od -h | $BB head -n 1 | $BB cut -c 11-`;
-		tamperstate=`$BB dd ibs=1 count=1 skip=$tamper if=$block 2> /dev/null | $BB od -h | $BB head -n 1 | $BB cut -c 11-`;
-
-		if [ $lockstate == $locked ]; then
-			state="Locked";
-		elif [ $lockstate == $unlocked ]; then
-			state="Unlocked";
-		else
-			state="Unknown";
-		fi;
-
-		if [ $tamperstate == $false ]; then
-			tamper="False";
-		elif [ $tamperstate == $true ]; then
-			tamper="True";
-		else
-			tamper="Unknown";
-		fi;
-
-		$BB echo "Version: $version@nState: $state@nTamper: $tamper";
 	;;
 	LiveCPUFrequency)
 		CPU0=`$BB cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq 2> /dev/null`;
@@ -313,46 +312,13 @@ case "$1" in
 			$BB echo "\"$TCPCC\",";
 		done;
 	;;
-	ToggleBootloader)
-		block=/dev/block/platform/msm_sdcc.1/by-name/aboot;
-		offset=1048080;
-		locked=00;
-		unlocked=01;
-		lockstate=`$BB dd ibs=1 count=1 skip=$offset if=$block 2> /dev/null | $BB od -h | $BB head -n 1 | $BB cut -c 11-`;
-
-		if [ $lockstate == $locked ]; then
-			$BB echo "Setting state to Unlocked...";
-			setstate=$unlocked;
-		elif [ $lockstate == $unlocked ]; then
-			$BB echo "Setting state to Locked...";
-			setstate=$locked;
-		else
-			$BB echo "State is Unknown. No changes were made.";
-		fi;
-
-		if [ -n "$setstate" ]; then
-			$BB echo -ne "\x$setstate" | $BB dd obs=1 count=1 seek=$offset of=$block 2> /dev/null;
-		fi;
+	LiveIOReadAheadSize)
+		$BB echo "`$BB cat /sys/block/mmcblk0/queue/read_ahead_kb`";
 	;;
-	ToggleTamper)
-		block=/dev/block/platform/msm_sdcc.1/by-name/aboot;
-		offset=1048084;
-		false=00;
-		true=01;
-		tamperstate=`$BB dd ibs=1 count=1 skip=$offset obs=1 if=$block 2> /dev/null | $BB od -h | $BB head -n 1 | $BB cut -c 11-`;
-
-		if [ $tamperstate == $true ]; then
-			$BB echo "Setting tamper flag to False...";
-			setstate=$false;
-		elif [ $tamperstate == $false ]; then
-			$BB echo "Setting tamper flag to True...";
-			setstate=$true;
-		else
-			"Tamper is Unknown. No changes were made.";
-		fi;
-
-		if [ -n "$setstate" ]; then
-			$BB echo -ne "\x$setstate" | $BB dd obs=1 count=1 seek=$offset of=$block 2> /dev/null;
-		fi;
+	LiveIOScheduler)
+		$BB echo "`$BB cat /sys/block/mmcblk0/queue/scheduler`";
+	;;
+	LiveTCPCongestion)
+		$BB echo "`$BB cat /proc/sys/net/ipv4/tcp_congestion_control`";
 	;;
 esac;
