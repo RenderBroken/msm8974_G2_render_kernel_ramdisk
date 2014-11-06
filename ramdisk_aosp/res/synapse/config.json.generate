@@ -31,7 +31,7 @@ cat << CTAG
 			. /res/synapse/config.json.generate.gpu
 			$BB echo ','
 			if [ -f "/sys/devices/platform/kcal_ctrl.0/kcal" ] || [ -f "/sys/devices/platform/mipi_lgit.1537/kgamma_b" ] || [ -f "/sys/class/misc/gammacontrol/brightness" ] || [ -f "/sys/devices/i2c-0/0-0038/lm3530_br_mode" ] || [ -f "/sys/module/msm_fb/parameters/backlight_dimmer" ] || [ -f "/sys/devices/platform/mipi_lgit.1537/kgamma_blue" ] || [ -f "/sys/module/dsi_panel/kgamma_bn" ] || [ -d "/sys/devices/virtual/graphics/fb0" ]; then
-				. /res/synapse/config.json.generate.gamma
+				. /res/synapse/config.json.generate.screen
 			$BB echo ','
 			fi
 			if [ -d "/sys/kernel/sound_control_3" ] || [ -d "/sys/class/misc/soundcontrol" ]; then
@@ -43,8 +43,6 @@ cat << CTAG
 			$BB echo ','
 			fi
 			. /res/synapse/config.json.generate.mem
-			$BB echo ','
-			. /res/synapse/config.json.generate.wake
 			$BB echo ','
 			. /res/synapse/config.json.generate.misc
 			$BB echo ','
