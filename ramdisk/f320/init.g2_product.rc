@@ -1,0 +1,71 @@
+## Be careful to use "exec" command.
+## If you execute a non-existing file, an additional init process can be created!
+
+on boot
+
+mkdir /data/playready 0777 system system
+chown system system /data/playready
+chmod 0777 /data/playready
+# 2013-02-25 hyoseab.song@lge.com LGP_DATA_TCPIP_TCP_BUFSIZE_SKT [START]
+# Re-define TCP buffer size for SKT WCDMA network. Overwrite init.rc property
+# ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
+    setprop net.tcp.buffersize.umts		4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.hspa		4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.hsupa	4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.hsdpa	4094,87380,1220608,4096,16384,1220608
+    setprop net.tcp.buffersize.lte     524288,1048576,2560000,524288,1048576,2560000
+# 2013-02-25 hyoseab.song@lge.com LGP_DATA_TCPIP_TCP_BUFSIZE_SKT [END]
+
+# LGE_CHANGE_S, [yeonjun.kim@lge.com][2013-06-14] set default brightness
+    write /sys/class/leds/lcd-backlight/brightness 173
+
+# Bluetooth tethering
+    setprop bluetooth.pan true
+
+on init
+    # LGE_CHANGE_S, G2-FS@lge.com, 2013-03-23, export external sdcard
+    mkdir /storage/external_SD 0700 root root
+    mkdir /mnt/media_rw 0700 media_rw media_rw
+    mkdir /mnt/media_rw/external_SD 0700 media_rw media_rw
+    export EXTERNAL_ADD_STORAGE /storage/external_SD
+    export SECONDARY_STORAGE /storage/external_SD
+    # LGE_CHANGE_E, G2-FS@lge.com, 2013-03-23, export external sdcard
+#2013.04.01 LGE_CHANGE_S hyeongjin.kim@lge.com, SMPL count
+service smpl_count /system/bin/smpl_count
+    class main
+	user root
+	oneshot
+#2013.04.01 LGE_CHANGE_E hyeongjin.kim@lge.com, SMPL count
+
+# LGE_CHANGE_S, 20130507 G2-FS@lge.com, factory reset magic code
+on property:sys.factory=1
+    exec /system/bin/dd if=/system/etc/factory_reset_magic of=/dev/block/platform/msm_sdcc.1/by-name/pad1 bs=512 count=1
+# LGE_CHANGE_E, 20120507 G2-FS@lge.com, factory reset magic code
+
+# LGE_CHANGE_S, 20130604 bill.jung@lge.com, Enable WiFi Direct 5GHz GO/GC
+    setprop wifi.lge.supportp2p5g full
+# LGE_CHANGE_E, 20130604 bill.jung@lge.com, Enable WiFi Direct 5GHz GO/GC
+
+# 2013.02.15 [G2_Broadcast][heri.jang@lge.com] Broadcast Service[START]
+service broadcast /system/bin/libbroadcast_server
+    class main
+    user media
+    group system audio media graphics sdcard_rw
+
+on property:init.svc.media=restarting
+    restart broadcast
+# 2013.02.15 [G2_Broadcast][heri.jang@lge.com] Broadcast Service [END]
+
+# LGE_CHANGE_S, G2-FS@lge.com, 2013-10-30, fuse for external_SD
+service fuse_external_SD /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/external_SD /storage/external_SD
+    class late_start
+    disabled
+# LGE_CHANGE_E, G2-FS@lge.com, 2013-10-30, fuse for external_SD
+# [S]SD card encryption
+on post-fs-data
+    setprop ro.ssbd.session /dev/block/platform/msm_sdcc.1/by-name/encrypt
+    setprop ro.ssbd.offset 50
+service ssbd /system/bin/ssbd
+    class main
+    socket ssbd stream 0660 root mount
+# [E]SD card encryption
