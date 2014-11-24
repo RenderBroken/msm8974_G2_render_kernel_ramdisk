@@ -108,7 +108,7 @@ cat << CTAG
 			FC=\`$BB cat /sys/kernel/fast_charge/force_fast_charge\`
 			FCL=\`$BB cat /sys/kernel/fast_charge/fast_charge_level\`
 				$BB echo '{ SPane:{
-				title:"USB Fast Charge"
+				title:"Fast Charge Control"
 				}},
 					{ SOptionList:{
 						title:"Enable",
@@ -121,7 +121,7 @@ cat << CTAG
 					}},
 					{ SSeekBar:{
 						title:"Fast Charge Level",
-						description:"Fast charge voltage configuration. For USB 2.0 use 500mA as MAX, for USB 3.0 use 900mA as MAX, For wallcharger use 1500mA as MAX. WARNING: Incorrect use of voltage could damage your phone or USB ports.",
+						description:"Fast Charge configuration. For USB 2.0 use 500mA as MAX, for USB 3.0 use 900mA as MAX, For wallcharger use 1800mA as MAX. WARNING: Incorrect use of voltage could damage your phone or USB ports.",
 						default:'$FCL',
 						action:"generic /sys/kernel/fast_charge/fast_charge_level",
 						values:{ 0:"Disabled",'

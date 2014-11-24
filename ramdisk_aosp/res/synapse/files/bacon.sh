@@ -54,6 +54,9 @@ case "$1" in
 	DebugSPEED)
 		$BB echo "Speed bin";
 	;;
+	DefaultCPUGovernor)
+		$BB echo `$BB cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+	;;
 	DefaultCPUMaxFrequency)
 		while read FREQ TIME; do
 			if [ $FREQ -le "2260000" ]; then

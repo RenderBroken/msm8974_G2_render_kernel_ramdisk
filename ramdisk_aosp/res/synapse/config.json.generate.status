@@ -3,13 +3,6 @@ cat << CTAG
 	name:STATUS,
 		elements:[
 			{ SPane:{
-				title:"CPU Scaling Frequencies",
-			}},
-				{ SLiveLabel:{
-				refresh:2000,
-				action:"live CPU_MAX_MIN_Freq"
-			}},
-			{ SPane:{
 				title:"CPU Cores State",
 			}},
 				{ SLiveLabel:{
