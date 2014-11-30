@@ -23,7 +23,7 @@ echo 2 > /sys/module/msm_hotplug/cpus_boosted
 echo 500 > /sys/module/msm_hotplug/down_lock_duration
 echo 2500 > /sys/module/msm_hotplug/boost_lock_duration
 echo 200 5:100 50:50 350:200 > /sys/module/msm_hotplug/update_rates
-echo 99 > /sys/module/msm_hotplug/fast_lane_load
+echo 400 > /sys/module/msm_hotplug/fast_lane_load
 echo 1 > /sys/module/msm_hotplug/max_cpus_online_susp
 
 ############################
@@ -41,22 +41,6 @@ chmod 644 /dev/urandom
 ############################
 # CPUFreq and Governor Settings
 #
-# Ondemand
-echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-echo ondemand > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
-echo ondemand > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
-echo ondemand > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
-echo 95 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
-echo 50000 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
-echo 1 > /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy
-echo 4 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor
-echo 10 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential
-echo 70 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_multi_core
-echo 3 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core
-echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/optimal_freq
-echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/sync_freq
-echo 80 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_any_cpu_load
-
 # Bacon
 echo bacon > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 echo bacon > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
@@ -71,10 +55,6 @@ echo 40000 > /sys/devices/system/cpu/cpufreq/bacon/min_sample_time
 echo 30000 > /sys/devices/system/cpu/cpufreq/bacon/timer_rate
 echo 100000 > /sys/devices/system/cpu/cpufreq/bacon/max_freq_hysteresis
 echo 30000 > /sys/devices/system/cpu/cpufreq/bacon/timer_slack
-echo 300000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
-echo 300000 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
-echo 300000 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq
-echo 300000 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
 
 # Interactive
 echo interactive > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
@@ -97,6 +77,34 @@ echo 30000 > /sys/devices/system/cpu/cpufreq/interactive/timer_rate
 echo -1 > /sys/devices/system/cpu/cpufreq/interactive/timer_slack
 echo 75 > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_load
 echo 1574400 > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_freq
+
+# Ondemand
+echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+echo ondemand > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+echo ondemand > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+echo ondemand > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
+echo 95 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
+echo 50000 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
+echo 1 > /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy
+echo 4 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor
+echo 10 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential
+echo 70 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_multi_core
+echo 3 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core
+echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/optimal_freq
+echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/sync_freq
+echo 80 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_any_cpu_load
+
+############################
+# Set MAN-MAX Freq on boot
+#
+echo 300000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+echo 300000 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
+echo 300000 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq
+echo 300000 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
+echo 2265600 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+echo 2265600 > /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq
+echo 2265600 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq
+echo 2265600 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq
 
 ############################
 # Scheduler and Read Ahead
