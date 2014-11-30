@@ -8,9 +8,9 @@ cat << CTAG
     elements:[
 	{ SLiveLabel:{
 		title:"Scaling Frequencies",
-		description: "Scaling min-max frequencies are affected by thermal engine/driver and CPU Boost driver. You may enable and use MSM Limiter Driver below to make sure scaling frequencies are desired ranges most of the time. This reflects CPU0 scaling frequencies.",
+		description: "Scaling MAX-MIN frequencies are affected by thermal engine/driver and CPU Boost driver. You may enable and use MSM Limiter Driver below to make sure scaling frequencies are desired ranges most of the time. This reflects CPU0 scaling frequencies.",
 		refresh:800,
-		action:"live MAXMINFreq"
+		action:"live SCALINGFREQ"
 	}},
 	{ STitleBar:{
 		title:"MSM Limiter"

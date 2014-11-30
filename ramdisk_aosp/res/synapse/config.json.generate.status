@@ -7,7 +7,7 @@ cat << CTAG
 			}},
 				{ SLiveLabel:{
 				refresh:1000,
-				action:"live CPU_CORES_ON_OFF"
+				action:"live CORESTATUS"
 			}},
 			{ SPane:{
 				title:"Current Active CPU Governor",
