@@ -1,0 +1,113 @@
+cat << CTAG
+{
+	name:STATUS,
+		elements:[
+			{ SPane:{
+				title:"CPU Cores State",
+			}},
+				{ SLiveLabel:{
+				refresh:1000,
+				action:"live CORESTATUS"
+			}},
+			{ SPane:{
+				title:"Current Active CPU Governor",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live DefaultCPUGovernor"
+			}},
+			{ SPane:{
+				title:"CPU Temperature:"
+			}},
+				{ SLiveLabel:{
+					refresh:3000,
+					style:italic,
+					action:"live CPUTemperature"
+				}},
+			{ SPane:{
+				title:"Battery Temperature:"
+			}},
+				{ SLiveLabel:{
+					refresh:3000,
+					style:italic,
+					action:"live BatteryTemperature"
+				}},
+			{ SPane:{
+				title:"Current GPU Frequency:"
+			}},
+				{ SLiveLabel:{
+					refresh:1000,
+					style:italic,
+					action:"live GPUFrequency"
+				}},
+			{ SPane:{
+				title:"Current GPU Governor:",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live DefaultGPUGovernor"
+			}},
+			{ SPane:{
+				title:"Memory:"
+			}},
+				{ SLiveLabel:{
+					refresh:3000,
+					style:italic,
+					action:"live Memory"
+				}},
+			{ SPane:{
+				title:"Uptime:"
+			}},
+				{ SLiveLabel:{
+					refresh:0,
+					style:italic,
+					action:"live UpTime"
+				}},
+			{ SPane:{
+				title:"Unused States:"
+			}},
+				{ SLiveLabel:{
+					refresh:0,
+					style:italic,
+					action:"live UnUsed"
+				}},
+			{ SPane:{
+				title:"Time in States:"
+			}},
+				{ SLiveLabel:{
+					refresh:0,
+					style:italic,
+					action:"live Time 0 9"
+				}},
+				{ SLiveLabel:{
+					refresh:0,
+					style:italic,
+					action:"live Time 10 19"
+				}},
+			{ SPane:{
+				title:"MMC Current IO Scheduler:",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live IOScheduler"
+			}},
+			{ SPane:{
+				title:"NET Current TCP Congestion:",
+			}},
+				{ SLiveLabel:{
+				refresh:10000,
+				action:"live TCPCongestion"
+			}},
+			`if [ -f "/proc/wakelocks" ]; then
+				$BB echo '{ SPane:{
+					title:"Kernel Wakelocks (Top 10):"
+				}},
+					{ SLiveLabel:{
+						refresh:0,
+						style:italic,
+						action:"live WakelocksKernel"
+					}},'
+			fi`
+		]
+}
+CTAG

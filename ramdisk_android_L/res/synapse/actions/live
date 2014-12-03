@@ -1,0 +1,108 @@
+BB=/sbin/busybox;
+DEVICE=/res/synapse/files/bacon.sh;
+
+case $1 in
+	SCALINGFREQ)
+		FREQMAX_0="$(expr `cat /sys/kernel/msm_limiter/live_max_freq_0` / 1000)"
+		FREQMIN_0="$(expr `cat /sys/kernel/msm_limiter/live_min_freq_0` / 1000)"
+		FREQCUR_0="$(expr `cat /sys/kernel/msm_limiter/live_cur_freq_0` / 1000)"
+		FREQMAX_1="$(expr `cat /sys/kernel/msm_limiter/live_max_freq_1` / 1000)"
+		FREQMIN_1="$(expr `cat /sys/kernel/msm_limiter/live_min_freq_1` / 1000)"
+		FREQCUR_1="$(expr `cat /sys/kernel/msm_limiter/live_cur_freq_1` / 1000)"
+		FREQMAX_2="$(expr `cat /sys/kernel/msm_limiter/live_max_freq_2` / 1000)"
+		FREQMIN_2="$(expr `cat /sys/kernel/msm_limiter/live_min_freq_2` / 1000)"
+		FREQCUR_2="$(expr `cat /sys/kernel/msm_limiter/live_cur_freq_2` / 1000)"
+		FREQMAX_3="$(expr `cat /sys/kernel/msm_limiter/live_max_freq_3` / 1000)"
+		FREQMIN_3="$(expr `cat /sys/kernel/msm_limiter/live_min_freq_3` / 1000)"
+		FREQCUR_3="$(expr `cat /sys/kernel/msm_limiter/live_cur_freq_3` / 1000)"
+		echo CPU - Max : Min : Current@nCPU0 - $FREQMAX_0 : $FREQMIN_0 : $FREQCUR_0@nCPU1 - $FREQMAX_1 : $FREQMIN_1 : $FREQCUR_1@nCPU2 - $FREQMAX_2 : $FREQMIN_2 : $FREQCUR_2@nCPU3 - $FREQMAX_3 : $FREQMIN_3 : $FREQCUR_3
+	;;
+	KSMStats)
+		KSM="$(expr `cat /sys/kernel/mm/ksm/run`)"
+		if [ KSM -eq "1" ]; then
+			SAVEDMEM=`echo "Saved memory: $((\`cat /sys/kernel/mm/ksm/pages_sharing\`*4096/1024/1024)) MB"`
+			SHARDMEM=`echo "Shared memory: $((\`cat /sys/kernel/mm/ksm/pages_shared\`*4096/1024/1024)) MB"`
+			echo $SAVEDMEM@n$SHARDMEM
+		else
+			echo KSM is Disabled.
+		fi
+	;;
+	PVSbin)
+		if [ -e  /sys/module/clock_krait_8974/parameters/table_name ]; then
+			PVS="$(expr `cat  /sys/module/clock_krait_8974/parameters/table_name`)"
+			echo $PVS
+		else
+			echo PVS bin not found.
+		fi
+	;;
+	CORESTATUS)
+		CORE_0=Offline
+		CORE_1=Offline
+		CORE_2=Offline
+		CORE_3=Offline
+		if [ $(expr `cat /sys/kernel/msm_limiter/live_cur_freq_0`) -gt "0" ]; then
+			CORE_0=Online
+		fi
+		if [ $(expr `cat /sys/kernel/msm_limiter/live_cur_freq_1`) -gt "0" ]; then
+			CORE_1=Online
+		fi
+		if [ $(expr `cat /sys/kernel/msm_limiter/live_cur_freq_2`) -gt "0" ]; then
+			CORE_2=Online
+		fi
+		if [ $(expr `cat /sys/kernel/msm_limiter/live_cur_freq_3`) -gt "0" ]; then
+			CORE_3=Online
+		fi
+		echo CPU0: $CORE_0  CPU1: $CORE_1@nCPU2: $CORE_2  CPU3: $CORE_3
+	;;
+	BatteryTemperature)
+		$BB echo `sh $DEVICE LiveBatteryTemperature`;
+	;;
+	Bootloader)
+		$BB echo `sh $DEVICE LiveBootloader`;
+	;;
+	CPUFrequency)
+		$BB echo `sh $DEVICE LiveCPUFrequency`;
+	;;
+	CPU_CORES_ON_OFF)
+		$BB echo `sh $DEVICE LiveCPU_CORES_ON_OFF`;
+	;;
+	CPUTemperature)
+		$BB echo `sh $DEVICE LiveCPUTemperature`;
+	;;
+	CPU_MAX_MIN_Freq)
+		$BB echo `sh $DEVICE LiveCPU_MAX_MIN_Freq`;
+	;;
+	GPUFrequency)
+		$BB echo `sh $DEVICE LiveGPUFrequency`;
+	;;
+	IOReadAheadSize)
+		$BB echo `sh $DEVICE LiveIOReadAheadSize`;
+	;;
+	IOScheduler)
+		$BB echo `sh $DEVICE LiveIOScheduler`;
+	;;
+	TCPCongestion)
+		$BB echo `sh $DEVICE LiveTCPCongestion`;
+	;;
+	Memory)
+		$BB echo `sh $DEVICE LiveMemory`;
+	;;
+	Time)
+		$BB echo `sh $DEVICE LiveTime $2 $3`;
+	;;
+	UpTime)
+		$BB echo `sh $DEVICE LiveUpTime`;
+	;;
+	UnUsed)
+		$BB echo `sh $DEVICE LiveUnUsed`;
+	;;
+	WakelocksKernel)
+		$BB echo `sh $DEVICE LiveWakelocksKernel`;
+	;;
+	DefaultGPUGovernor)
+		$BB echo `sh $DEVICE LiveDefaultGPUGovernor`;
+	;;
+	DefaultCPUGovernor)
+		$BB echo `sh $DEVICE LiveDefaultCPUGovernor`;
+	;;
+esac;

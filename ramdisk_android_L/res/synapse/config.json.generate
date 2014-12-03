@@ -1,0 +1,61 @@
+BB=/sbin/busybox;
+DEVICE=/res/synapse/files/bacon.sh;
+
+bool() {
+  [ `$BB cat $1` == "Y" ] && $BB echo "1";
+  [ `$BB cat $1` == "N" ] && $BB echo "0";
+}
+
+# Mount root as RW to apply tweaks and settings
+$BB mount -t rootfs -o remount,rw rootfs;
+$BB mount -o remount,rw /;
+
+cat << CTAG
+{
+    sections: [
+		`if [ -n "$DEVICE" ]; then
+			. /res/synapse/config.json.generate.info
+			$BB echo ','
+			. /res/synapse/config.json.generate.status
+			$BB echo ','
+			. /res/synapse/config.json.generate.cpu
+			$BB echo ','
+			. /res/synapse/config.json.generate.hotplug
+			$BB echo ','
+			. /res/synapse/config.json.generate.thermal
+			$BB echo ','
+			. /res/synapse/config.json.generate.cpuvolt
+			$BB echo ','
+			. /res/synapse/config.json.generate.io
+			$BB echo ','
+			. /res/synapse/config.json.generate.gpu
+			$BB echo ','
+			if [ -f "/sys/devices/platform/kcal_ctrl.0/kcal" ] || [ -f "/sys/devices/platform/mipi_lgit.1537/kgamma_b" ] || [ -f "/sys/class/misc/gammacontrol/brightness" ] || [ -f "/sys/devices/i2c-0/0-0038/lm3530_br_mode" ] || [ -f "/sys/module/msm_fb/parameters/backlight_dimmer" ] || [ -f "/sys/devices/platform/mipi_lgit.1537/kgamma_blue" ] || [ -f "/sys/module/dsi_panel/kgamma_bn" ] || [ -d "/sys/devices/virtual/graphics/fb0" ]; then
+				. /res/synapse/config.json.generate.screen
+			$BB echo ','
+			fi
+			if [ -d "/sys/kernel/sound_control_3" ] || [ -d "/sys/class/misc/soundcontrol" ]; then
+				. /res/synapse/config.json.generate.sound
+			$BB echo ','
+			fi
+			if [ -d "/sys/bus/i2c/devices/0-0058" ]; then
+				. /res/synapse/config.json.generate.speaker
+			$BB echo ','
+			fi
+			. /res/synapse/config.json.generate.mem
+			$BB echo ','
+			. /res/synapse/config.json.generate.misc
+			$BB echo ','
+			. /res/synapse/config.json.generate.adv
+			$BB echo ','
+			. /res/synapse/config.json.generate.bprop
+			$BB echo ','
+			. /res/synapse/config.json.generate.tools
+			$BB echo ','
+			. /res/synapse/config.json.generate.profile
+		else
+			. /res/synapse/config.json.generate.error
+		fi`
+    ]
+}
+CTAG

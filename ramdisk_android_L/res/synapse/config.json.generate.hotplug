@@ -1,0 +1,561 @@
+cat << CTAG
+{
+	name:HOTPLUG,
+		elements:[
+			{ SPane:{
+				title:"Info"
+			}},
+				{ SDescription:{
+					description:"Use only one hotplug driver from the following options, using more than at the same time may cause unexpected behavior."
+				}},
+			`if [ -f "/system/bin/mpdecision" ]; then
+			MPDEC=\`ps | $BB grep mpdecision\`
+				if [ -n "$MPDEC" ]; then MPDEC=1; else MPDEC=0; fi
+				$BB echo '{ SPane:{
+					title:"MPDecision"
+				}},
+					{ SCheckBox:{
+						label:"Enable",
+						description:"Stock Qualcomm hotplug driver and frequency service. This should be disabled if current kernel has an alternative.",
+						default:'$MPDEC',
+						action:"serviceset mpdecision"
+					}},'
+			fi`
+			`if [ -d "/sys/module/intelli_plug/parameters" ] && [ ! -f "/sys/kernel/intelli_plug/full_mode_profile" ]; then
+				$BB echo '{ SPane:{
+					title:"Intelliplug"
+				}},'
+				if [ -f "/sys/module/intelli_plug/parameters/intelli_plug_active" ]; then
+				INTELLIPLUG=\`$BB cat /sys/module/intelli_plug/parameters/intelli_plug_active\`;
+					$BB echo '{ SCheckBox:{
+						label:"Enable",
+						description:"An in kernel replacement for Qualcomms MPDecision. Developed by faux123.",
+						default:'$INTELLIPLUG',
+						action:"generic /sys/module/intelli_plug/parameters/intelli_plug_active"
+					}},'
+				fi
+				if [ -f "/sys/module/intelli_plug/parameters/nr_run_profile_sel" ]; then
+				PL=\`$BB cat /sys/module/intelli_plug/parameters/nr_run_profile_sel\`;
+				$BB echo '{ SOptionList:{
+						title:"Intelliplug Profile",
+						description:"The number in the parentheses indicates the amount of cores online at any time.",
+						default:'$PL',
+						action:"generic /sys/module/intelli_plug/parameters/nr_run_profile_sel",
+						values:{
+							0:"Balanced (4)", 1:"Performance (4)", 2:"Conservative (4)", 3:"Eco Performance (2)", 4:"Eco Conservative (2)"
+						}
+				}},'
+				fi
+				if [ -f "/sys/module/intelli_plug/parameters/eco_mode_active" ]; then
+				ECOMODE=\`$BB cat /sys/module/intelli_plug/parameters/eco_mode_active\`;
+					$BB echo '{ SCheckBox:{
+						label:"Eco Mode",
+						description:"Special power savings mode where the kernel automatically reconfigures its decisions in real time and optimizes to use only 2 out of 4 cores.",
+						default:'$ECOMODE',
+						action:"generic /sys/module/intelli_plug/parameters/eco_mode_active"
+					}},'
+				fi
+				if [ -f "/sys/module/intelli_plug/parameters/touch_boost_active" ]; then
+				TBOOST=\`$BB cat /sys/module/intelli_plug/parameters/touch_boost_active\`;
+					$BB echo '{ SCheckBox:{
+						label:"Touch Boost",
+						description:"This will boost your minimum CPU speed if you touch the screen or press a button.",
+						default:'$TBOOST',
+						action:"generic /sys/module/intelli_plug/parameters/touch_boost_active"
+					}},'
+				fi
+				if [ -f "/sys/module/intelli_plug/parameters/nr_run_hysteresis" ]; then
+				HV=\`$BB cat /sys/module/intelli_plug/parameters/nr_run_hysteresis\`;
+				$BB echo '{ SSeekBar:{
+						title:"Hysteresis Value",
+						description:"Lower = faster hotplug response (more battery drain).",
+						min:0,
+						max:16,
+						step:1,
+						default:'$HV',
+						action:"generic /sys/module/intelli_plug/parameters/nr_run_hysteresis"
+				}},'
+				fi
+				if [ -f "/sys/module/intelli_plug/parameters/cpu_nr_run_threshold" ]; then
+				RT=\`$BB cat /sys/module/intelli_plug/parameters/cpu_nr_run_threshold\`;
+				$BB echo '{ SSeekBar:{
+						title:"Threshold Value",
+						min:0,
+						max:1000,
+						step:1,
+						default:'$RT',
+						action:"generic /sys/module/intelli_plug/parameters/cpu_nr_run_threshold"
+				}},'
+				fi
+				if [ -f "/sys/module/intelli_plug/parameters/screen_off_max" ]; then
+				$BB echo '{ SSeekBar:{
+						title:"CPU Max Screen Off Frequency",
+						description:"Set the maximum frequency the CPU scales up to when the screen is off.",
+						default:0,
+						action:"numeric /sys/module/intelli_plug/parameters/screen_off_max",
+						values:{ 0:"Disabled", '
+							sh $DEVICE CPUFrequencyList
+					$BB echo '}
+				}},'
+				fi
+			fi`
+			`if [ -f "/sys/kernel/msm_cpufreq_limit/cpufreq_limit" ]; then
+			SC=\`$BB cat /sys/kernel/msm_cpufreq_limit/cpufreq_limit\`;
+				$BB echo '{ SSeekBar:{
+						title:"CPU Frequency Limit (Snakecharmer)",
+						description:"Allows you to set a specific Max CPU frequency to ALL cores at the same time.",
+						default:'$SC',
+						action:"generic /sys/kernel/msm_cpufreq_limit/cpufreq_limit",
+						values:{'
+							sh $DEVICE CPUFrequencyList
+					$BB echo '}
+				}},'
+			fi`
+			`if  [ -d "/sys/kernel/intelli_plug" ] && [ -f "/sys/kernel/intelli_plug/full_mode_profile" ]; then
+				$BB echo '{ SPane:{
+					title:"IntelliPlug 5.0"
+				}},'
+				if [ -f "/sys/kernel/intelli_plug/intelli_plug_active" ]; then
+				INTELLIPLUG=\`$BB cat /sys/kernel/intelli_plug/intelli_plug_active\`;
+					$BB echo '{ SCheckBox:{
+						label:"Enable",
+						description:"An in kernel replacement for Qualcomms MPDecision. Developed by faux123 & neobuddy89.",
+						default:'$INTELLIPLUG',
+						action:"generic /sys/kernel/intelli_plug/intelli_plug_active"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/debug_intelli_plug" ]; then
+				DEBUG=\`$BB cat /sys/kernel/intelli_plug/debug_intelli_plug\`;
+					$BB echo '{ SCheckBox:{
+						label:"Debug Intelliplug",
+						description:"Allows you to activate debug mask for hotplug operations.",
+						default:'$DEBUG',
+						action:"generic /sys/kernel/intelli_plug/debug_intelli_plug"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/full_mode_profile" ]; then
+				FMP=\`$BB cat /sys/kernel/intelli_plug/full_mode_profile\`;
+					$BB echo '{ SOptionList:{
+						title:"Intelliplug Profile",
+						description:"The number in the parentheses indicates the amount of cores online at any time.",
+						default:'$FMP',
+						action:"generic /sys/kernel/intelli_plug/full_mode_profile",
+						values:{
+							0:"Balanced (4)", 1:"Performance (4)", 2:"Conservative (4)", 3:"Disabled", 4:"Tri (3)", 5:"Eco (2)", 6:"Strict (1)"
+						}
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/hotplug_suspend" ]; then
+				HS=\`$BB cat /sys/kernel/intelli_plug/hotplug_suspend\`;
+					$BB echo '{ SCheckBox:{
+						label:"Hotplug Suspend",
+						description:"Allow the hotplug governor to not suspend.",
+						default:'$HS',
+						action:"generic /sys/kernel/intelli_plug/hotplug_suspend"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/cpus_boosted" ]; then
+				CPUBOOST=\`$BB cat /sys/kernel/intelli_plug/cpus_boosted\`;
+					$BB echo '{ SSeekBar:{
+						title:"CPUs Boosted",
+						description:"Maximum number of CPUs boosted at the same time.",
+						min:0,
+						max:'
+							sh $DEVICE MaxCPU
+						$BB echo ',
+						step:1,
+						default:'$CPUBOOST',
+						action:"generic /sys/kernel/intelli_plug/cpus_boosted"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/nr_run_hysteresis" ]; then
+				HV=\`$BB cat /sys/kernel/intelli_plug/nr_run_hysteresis\`;
+					$BB echo '{ SSeekBar:{
+						title:"Hysteresis Value",
+						description:"Lower = faster hotplug response (more battery drain).",
+						min:0,
+						max:16,
+						step:1,
+						default:'$HV',
+						action:"generic /sys/kernel/intelli_plug/nr_run_hysteresis"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/min_cpus_online" ]; then
+				MINCPU=\`$BB cat /sys/kernel/intelli_plug/min_cpus_online\`;
+					$BB echo '{ SSeekBar:{
+						title:"Min CPUs Online",
+						description:"Minimum CPUs online at any time.",
+						min:1,
+						max:'
+							sh $DEVICE MaxCPU
+						$BB echo ',
+						step:1,
+						default:'$MINCPU',
+						action:"generic /sys/kernel/intelli_plug/min_cpus_online"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/max_cpus_online" ]; then
+				MAXCPU=\`$BB cat /sys/kernel/intelli_plug/max_cpus_online\`;
+					$BB echo '{ SSeekBar:{
+						title:"Max CPUs Online",
+						description:"Maximum CPUs online at any time.",
+						min:1,
+						max:'
+							sh $DEVICE MaxCPU
+						$BB echo ',
+						step:1,
+						default:'$MAXCPU',
+						action:"generic /sys/kernel/intelli_plug/max_cpus_online"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/max_cpus_online_susp" ]; then
+				MAXCPUSOFF=\`$BB cat /sys/kernel/intelli_plug/max_cpus_online_susp\`;
+					$BB echo '{ SSeekBar:{
+						title:"Max CPUs Screen Off",
+						description:"Maximum number of CPUs online when screen is off.",
+						min:1,
+						max:'
+							sh $DEVICE MaxCPU
+						$BB echo ',
+						step:1,
+						default:'$MAXCPUSOFF',
+						action:"generic /sys/kernel/intelli_plug/max_cpus_online_susp"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/suspend_defer_time" ]; then
+				SDT=\`$BB cat /sys/kernel/intelli_plug/suspend_defer_time\`;
+					$BB echo '{ SSeekBar:{
+						title:"Suspend Defer Time",
+						min:0,
+						max:5000,
+						step:10,
+						default:'$SDT',
+						action:"generic /sys/kernel/intelli_plug/suspend_defer_time"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/def_sampling_ms" ]; then
+				DS=\`$BB cat /sys/kernel/intelli_plug/def_sampling_ms\`;
+					$BB echo '{ SSeekBar:{
+						title:"Defer Sampling",
+						min:0,
+						max:1000,
+						unit:" ms",
+						step:1,
+						default:'$DS',
+						action:"generic /sys/kernel/intelli_plug/def_sampling_ms"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/boost_lock_duration" ]; then
+				BOOSTLOCK=\`$BB cat /sys/kernel/intelli_plug/boost_lock_duration\`
+					$BB echo '{ SSeekBar:{
+							title:"Boost Lock Duration",
+							description:"Minimum interval a CPU is boosted.",
+							unit:" ms",
+							min:1,
+							max:5000,
+							step:1,
+							default:'$BOOSTLOCK',
+							action:"generic /sys/kernel/intelli_plug/boost_lock_duration"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/down_lock_duration" ]; then
+				DOWNLOCK=\`$BB cat /sys/kernel/intelli_plug/down_lock_duration\`;
+					$BB echo '{ SSeekBar:{
+						title:"Down Lock Duration",
+						description:"Minimum interval a CPU is kept online.",
+						unit:" ms",
+						min:1,
+						max:5000,
+						step:1,
+						default:'$DOWNLOCK',
+						action:"generic /sys/kernel/intelli_plug/down_lock_duration"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/cpu_nr_run_threshold" ]; then
+				RT=\`$BB cat /sys/kernel/intelli_plug/cpu_nr_run_threshold\`;
+					$BB echo '{ SSeekBar:{
+						title:"Threshold Value",
+						min:0,
+						max:1000,
+						step:1,
+						default:'$RT',
+						action:"generic /sys/kernel/intelli_plug/cpu_nr_run_threshold"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/nr_fshift" ]; then
+				NF=\`$BB cat /sys/kernel/intelli_plug/nr_fshift\`;
+					$BB echo '{ SSeekBar:{
+						title:"FShift",
+						min:0,
+						max:3,
+						step:1,
+						default:'$NF',
+						action:"generic /sys/kernel/intelli_plug/nr_fshift"
+					}},'
+				fi
+				if [ -f "/sys/kernel/intelli_plug/screen_off_max" ]; then
+					$BB echo '{ SSeekBar:{
+						title:"CPU Max Screen Off Frequency",
+						description:"Set the maximum frequency the CPU scales up to when the screen is off.",
+						default:0,
+						action:"numeric /sys/kernel/intelli_plug/screen_off_max",
+						values:{ 0:"Disabled", '
+							sh $DEVICE CPUFrequencyList
+					$BB echo '}
+					}},'
+				fi
+			fi`
+			`if [ -d "/sys/module/msm_hotplug" ]; then
+				$BB echo '{ SPane:{
+						title:"MSM Hotplug"
+					}},'
+				if [ -f "/sys/module/msm_hotplug/enabled" ]; then
+				MSMHOT=\`$BB cat /sys/module/msm_hotplug/enabled\`
+						$BB echo '{ SCheckBox:{
+							label:"Enable",
+							description:"An in kernel replacement for Qualcomms MPDecision. Developed by myfluxi.",
+							default:'$MSMHOT',
+							action:"generic /sys/module/msm_hotplug/enabled"
+						}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/msm_enabled" ]; then
+				MSMEN=\`$BB cat /sys/module/msm_hotplug/msm_enabled\`
+						$BB echo '{ SCheckBox:{
+							label:"Enable",
+							description:"An in kernel replacement for Qualcomms MPDecision. Developed by myfluxi.",
+							default:'$MSMEN',
+							action:"generic /sys/module/msm_hotplug/msm_enabled"
+						}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/parameters/debug_mask" ]; then
+				MSMHOTDEBUG=\`cat /sys/module/msm_hotplug/parameters/debug_mask\`
+					echo '{ SCheckBox:{
+							label:"Debug Mask",
+							description:"Allows you to activate debug mask for hotplug operations.",
+							default:'$MSMHOTDEBUG',
+							action:"generic /sys/module/msm_hotplug/parameters/debug_mask"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/min_cpus_online" ]; then
+				MINCPU=\`$BB cat /sys/module/msm_hotplug/min_cpus_online\`
+					$BB echo '{ SSeekBar:{
+							title:"Min CPUs",
+							description:"Minimum CPUs online at any time.",
+							min:1,
+							max:'
+								sh $DEVICE MaxCPU
+							$BB echo ',
+							step:1,
+							default:'$MINCPU',
+							action:"generic /sys/module/msm_hotplug/min_cpus_online",
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/max_cpus_online" ]; then
+				MAXCPU=\`$BB cat /sys/module/msm_hotplug/max_cpus_online\`
+					$BB echo '{ SSeekBar:{
+							title:"Max CPUs",
+							description:"Maximum CPUs online at any time.",
+							min:1,
+							max:'
+								sh $DEVICE MaxCPU
+							$BB echo ',
+							step:1,
+							default:'$MAXCPU',
+							action:"generic /sys/module/msm_hotplug/max_cpus_online",
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/cpus_boosted" ]; then
+				BOOST=\`$BB cat /sys/module/msm_hotplug/cpus_boosted\`
+					$BB echo '{ SSeekBar:{
+							title:"Max CPUs Boosted",
+							description:"Maximum number of CPUs boosted at the same time.",
+							min:0,
+							max:'
+								sh $DEVICE MaxCPU
+							$BB echo ',
+							step:1,
+							default:'$BOOST',
+							action:"generic /sys/module/msm_hotplug/cpus_boosted",
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/max_cpus_online_susp" ]; then
+				MAXCPUSOFF=\`$BB cat /sys/module/msm_hotplug/max_cpus_online_susp\`
+					$BB echo '{ SSeekBar:{
+						title:"Max CPUs Screen Off",
+						description:"Maximum number of CPUs online when screen is off.",
+						min:1,
+						max:'
+							sh $DEVICE MaxCPU
+						$BB echo ',
+						step:1,
+						default:'$MAXCPUSOFF',
+						action:"generic /sys/module/msm_hotplug/max_cpus_online_susp",
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/boost_lock_duration" ]; then
+				BOOSTLOCK=\`$BB cat /sys/module/msm_hotplug/boost_lock_duration\`
+					$BB echo '{ SSeekBar:{
+							title:"Boost Lock Duration",
+							description:"Minimum interval a CPU is boosted.",
+							unit:" ms",
+							min:1,
+							max:5000,
+							step:1,
+							default:'$BOOSTLOCK',
+							action:"generic /sys/module/msm_hotplug/boost_lock_duration"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/down_lock_duration" ]; then
+				DOWNLOCK=\`$BB cat /sys/module/msm_hotplug/down_lock_duration\`
+					$BB echo '{ SSeekBar:{
+							title:"Down Lock Duration",
+							description:"Minimum interval a CPU is kept online.",
+							unit:" ms",
+							min:1,
+							max:5000,
+							step:1,
+							default:'$DOWNLOCK',
+							action:"generic /sys/module/msm_hotplug/down_lock_duration"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/history_size" ]; then
+				HISTORYSIZE=\`$BB cat /sys/module/msm_hotplug/history_size\`
+					$BB echo '{ SSeekBar:{
+							title:"History Size",
+							description:"Number of samples taken in consideration for average load across CPUs. Lower means quicker/more erratic.",
+							min:1,
+							max:60,
+							step:1,
+							default:'$HISTORYSIZE',
+							action:"generic /sys/module/msm_hotplug/history_size"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/update_rate" ]; then
+				UPDATERATE=\`$BB cat /sys/module/msm_hotplug/update_rate\`
+					$BB echo '{ SSeekBar:{
+							title:"Update Rate",
+							description:"Interval between taking samples of load across CPUs. Lower means quicker/more erratic.",
+							unit:" ms",
+							min:0,
+							max:60,
+							step:1,
+							default:'$UPDATERATE',
+							action:"generic /sys/module/msm_hotplug/update_rate"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/update_rates" ]; then
+				UPDATERATES=\`$BB cat /sys/module/msm_hotplug/update_rates\`
+					$BB echo '{ SGeneric:{
+							title:"Update Rates",
+							description:"Interval between taking samples of load across CPUs. Lower means quicker/more erratic.",
+							default:'$UPDATERATES',
+							action:"generic /sys/module/msm_hotplug/update_rates"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/fast_lane_load" ]; then
+				FASTLANE=\`$BB cat /sys/module/msm_hotplug/fast_lane_load\`
+					$BB echo '{ SSeekBar:{
+							title:"Fast Lane Load",
+							description:"Improve latencies by instantly putting online all CPUs if current load on any CPU is above a certain threshold.",
+							min:0,
+							max:400,
+							step:1,
+							default:'$FASTLANE',
+							action:"generic /sys/module/msm_hotplug/fast_lane_load"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/fast_lane_min_freq" ]; then
+				FLMF=\`$BB cat /sys/module/msm_hotplug/fast_lane_min_freq\`
+					$BB echo '{ SSeekBar:{
+							title:"Fast Lane Min Frequency",
+							description:"Sets the minimum frequency the CPU scales down to when fast lane reaches the above load.",
+							default:'$FLMF',
+							action:"generic /sys/module/msm_hotplug/fast_lane_min_freq",
+							values:{'
+								sh $DEVICE CPUFrequencyList
+						$BB echo '}
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/offline_load" ]; then
+				OFFLINELOAD=\`$BB cat /sys/module/msm_hotplug/offline_load\`
+					$BB echo '{ SSeekBar:{
+							title:"Offline Load",
+							description:"Dont offline a CPU if it would drop under the lower levels up threshold load (0 = disabled).",
+							min:0,
+							max:100,
+							step:1,
+							default:'$OFFLINELOAD',
+							action:"generic /sys/module/msm_hotplug/offline_load"
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/io_is_busy" ]; then
+				IOBUSY=\`$BB cat /sys/module/msm_hotplug/io_is_busy\`
+						$BB echo '{ SCheckBox:{
+							label:"IO is Busy",
+							description:"Used to make the hotplug consider the I/O time as CPU load time.",
+							default:'$IOBUSY',
+							action:"generic /sys/module/msm_hotplug/io_is_busy"
+						}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/hp_io_is_busy" ]; then
+				IOBUSY=\`$BB cat /sys/module/msm_hotplug/hp_io_is_busy\`
+						$BB echo '{ SCheckBox:{
+							label:"Hotplug IO is Busy",
+							description:"Used to make the hotplug consider the I/O time as CPU load time.",
+							default:'$IOBUSY',
+							action:"generic /sys/module/msm_hotplug/hp_io_is_busy"
+						}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/suspend_max_cpus" ]; then
+				SMAXCPU=\`$BB cat /sys/module/msm_hotplug/suspend_max_cpus\`
+					$BB echo '{ SSeekBar:{
+							title:"Suspend Max CPUs",
+							description:"Maximum CPUs online when the screen is off.",
+							min:0,
+							max:'
+								sh $DEVICE MaxCPU
+							$BB echo ',
+							step:1,
+							default:'$SMAXCPU',
+							action:"generic /sys/module/msm_hotplug/suspend_max_cpus",
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/suspend_freq" ] && [ ! -f "/sys/devices/system/cpu/cpu0/cpufreq/screen_off_max_freq" ]; then
+				SUSPFREQ=\`$BB cat /sys/module/msm_hotplug/suspend_freq\`
+					$BB echo '{ SSeekBar:{
+							title:"Suspend Frequency",
+							description:"Set the maximum frequency the CPU scales up to when the screen is off.",
+							default:'$SUSPFREQ',
+							action:"generic /sys/module/msm_hotplug/suspend_freq",
+							values:{'
+								sh $DEVICE CPUFrequencyList
+						$BB echo '}
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/suspend_max_freq" ]; then
+				SUSPFREQ=\`$BB cat /sys/module/msm_hotplug/suspend_max_freq\`
+					$BB echo '{ SSeekBar:{
+							title:"Suspend Frequency",
+							description:"Set the maximum frequency the CPU scales up to when the screen is off.",
+							default:'$SUSPFREQ',
+							action:"generic /sys/module/msm_hotplug/suspend_max_freq",
+							values:{ 0:"Disabled", '
+								sh $DEVICE CPUFrequencyList
+						$BB echo '}
+					}},'
+				fi
+				if [ -f "/sys/module/msm_hotplug/suspend_defer_time" ]; then
+				SDT=\`$BB cat /sys/module/msm_hotplug/suspend_defer_time\`
+						$BB echo '{ SSeekBar:{
+							title:"Suspend Defer Time",
+							min:0,
+							max:5000,
+							step:10,
+							default:'$SDT',
+							action:"generic /sys/module/msm_hotplug/suspend_defer_time"
+						}},'
+				fi
+			fi`
+		]
+}
+CTAG

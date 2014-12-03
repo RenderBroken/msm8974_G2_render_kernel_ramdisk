@@ -1,0 +1,128 @@
+cat << CTAG
+{
+	name:TOOLS,
+		elements:[
+			{ SPane:{
+				title:"SELinux Status",
+				description:"Allows you to change your SELinux (Security-Enhanced Linux) Status from Enforcing (policy is enforced) to Permissive (prints warnings instead of enforcing).",
+			}},
+				{ SOptionList:{
+					default:`getenforce`,
+					action:"devtools selinux",
+					values:[ Enforcing, Permissive
+					],
+				}},
+			`DB=/data/data/com.android.providers.settings/databases;
+			cd $DB;
+			VALUE=\`/res/synapse/sqlite3 settings.db "SELECT value FROM global WHERE name = 'preferred_network_mode';" 2> /dev/null\`;
+			if [[ ! -z $VALUE ]]; then
+				$BB echo '{ SPane:{
+					title:"Preferred Network Mode",
+					description:"Use GSM_auto or CDMA_auto to reduce the msm_hsic_host wakelock and save battery. After applying you need to reboot your device for the setting to take effect. More info <a href='"http://forum.xda-developers.com/showpost.php?p=6591742&postcount=2"'>HERE</a>.",
+				}},
+					{ SOptionList:{
+						default:'$VALUE',
+						action:"sqlite preferred_network_mode",
+						values:{ 0:"WCDMA_preferred", 1:"GSM_only", 2:"WCDMA_only", 3:"GSM_auto", 4:"CDMA_auto", 5:"CDMA_only", 6:"EvDo_only",
+							7:"GSM_CDMA_auto", 8:"LTE_CDMA_auto", 9:"LTE_GSM_auto", 10:"LTE_GSM_CDMA_auto", 11:"LTE_only", 12:"LTE_WDCMA",
+							13:"TD-SCDMA_only", 14:"TD-SCDMA_WCDMA", 15:"TD-SCDMA_LTE", 16:"TD-SCDMA_GSM", 17:"TD-SCDMA_GSM_LTE", 18:"TD-SCDMA_GSM_WCDMA",
+							19:"TD-SCDMA_WCDMA_LTE", 20:"TD-SCDMA_GSM_WDCMA_LTE", 21:"TD-SCDMA_GSM_WCDMA_CDMA_EvDo", 22:"TD-SCDMA_LTE_CDMA_EvDo_GSM_WCDMA"
+						},
+					}},'
+			fi`
+			{ SPane:{
+				title:"Advanced Tools"
+			}},
+				{ SDescription:{
+					description:"Use this button to defrag/reindex all databases found in /data & /sdcard, this increases database read/write performance. NOTE: This process can take from 1-2 minutes."
+				}},
+				{ SButton:{
+					label:"Optimize Databases",
+					action:"devtools optimizedb"
+				}},
+				{ SDescription:{
+					description:"Use this button to run FSTRIM on /data, /system/, and /cache."
+				}},
+				{ SButton:{
+					label:"FSTRIM Partitions",
+					action:"devtools fstrim"
+				}},
+				{ SDescription:{
+					description:"Use this button to update the touchscreen firmware an fix DT2W on AOSP Roms."
+				}},
+				{ SButton:{
+					label:"Update Touchscreen Firmware",
+					action:"devtools updatetouchfirmware"
+				}},
+			{ SPane:{
+				title:"Log Creation"
+			}},
+				`if [ -f "/sys/module/logger/parameters/enabled" ]; then
+				LOGMODE=\`$BB cat /sys/module/logger/parameters/enabled\`
+					$BB echo '{ SOptionList:{
+						title:"Log Mode",
+						description:"Allows you to toggle the log mode.",
+						default:'$LOGMODE',
+						action:"generic /sys/module/logger/parameters/enabled",
+						values:{
+							0:"Disabled", 1:"Enabled"
+						}
+					}},'
+				fi`
+				`if [ -f "/sys/module/logger/parameters/log_mode" ]; then
+				LOGMODE=\`$BB cat /sys/module/logger/parameters/log_mode\`
+					$BB echo '{ SOptionList:{
+						title:"Log Mode",
+						description:"Allows you to toggle the log mode.",
+						default:'$LOGMODE',
+						action:"generic /sys/module/logger/parameters/log_mode",
+						values:{
+							0:"Enabled", 1:"Auto Suspend", 2:"Disabled"
+						}
+					}},'
+				fi`
+			{ SDescription:{
+				description:"Save the logcat (App/system debug), dmesg (active kernel output) or last_ksmg (same as dmesg but from the last shutdown)."
+			}},
+				{ SButton:{
+					label:"Save logcat",
+					action:"devtools logcat"
+				}},
+				{ SButton:{
+					label:"Save dmesg",
+					action:"devtools dmesg"
+				}},
+				{ SButton:{
+					label:"Save last_kmsg",
+					action:"devtools kmsg"
+				}},
+			{ SPane:{
+				title:"General Actions",
+				description:"To update/refresh lists, select Restart Synapse below. To clear data, select Clear Synapse Data (fixes most common issues)."
+			}},
+				{ SButton:{
+					label:"Restart Synapse",
+					action:"restorebackup restart"
+				}},
+				{ SButton:{
+					label:"Clear Synapse Data",
+					action:"devtools cleardata"
+				}},
+			{ STitleBar:{
+				title:"Reboot"
+			}},
+				{ SButton:{
+					label:"Reboot Device",
+					action:"devtools reboot"
+				}},
+				{ SButton:{
+					label:"Reboot to Recovery",
+					action:"devtools reboot recovery"
+				}},
+				{ SButton:{
+					label:"Reboot to Bootloader",
+					action:"devtools reboot bootloader"
+				}}
+		]
+}
+CTAG
