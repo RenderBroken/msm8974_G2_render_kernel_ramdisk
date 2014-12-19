@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 DEVICE=/res/synapse/files/bacon.sh;
 
 UCI_CONFIG=/res/synapse/config.json;

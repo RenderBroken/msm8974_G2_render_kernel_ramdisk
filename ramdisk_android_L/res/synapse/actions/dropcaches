@@ -1,4 +1,4 @@
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 
 PATH=/proc/sys/vm/drop_caches;
 
