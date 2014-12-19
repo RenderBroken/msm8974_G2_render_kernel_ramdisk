@@ -8,8 +8,8 @@ cat << CTAG
     elements:[
 	{ SLiveLabel:{
 		title:"Scaling Frequencies",
-		description: "Scaling MAX-MIN frequencies are affected by thermal engine/driver and CPU Boost driver. You may enable and use MSM Limiter Driver below to make sure scaling frequencies are desired ranges most of the time. This reflects CPU0 scaling frequencies.",
-		refresh:800,
+		description: "Scaling max-min frequencies are affected by thermal engine/driver, mpdecision hotplug driver and CPU Boost driver. You may enable and use MSM Limiter Driver below to make sure scaling frequencies are desired ranges MOST of the time. We do let other drivers affect scaling frequencies because this manipulation helps to achieve performance without compromising stability. Below live monitor reflects actual scaling max and min frequencies in MHz per CPU core.",
+		refresh:1000,
 		action:"live SCALINGFREQ"
 	}},
 	{ STitleBar:{
@@ -17,13 +17,13 @@ cat << CTAG
 	}},
 	{ SCheckBox:{
 		label:"Enable",
-		description:"This enables overriding of current CPU Max/Min Frequency. It also set CPU Max Frequency whenever device resumes and suspends and set CPU Min Frequency whenever device suspends.",
+		description:"This enables overriding of current CPU Max/Min Frequency. It also set CPU Max Frequency whenever device resumes and suspends and set CPU Min Frequency whenever device suspends. Below controls will work ONLY if MSM Limiter driver is enabled. Ideal max frequency should always be higher than min frequency and input boost frequency. Ideal min frequency should be lesser than max frequency, max screen off frequency and input boost frequency.",
 		default:`cat /sys/kernel/msm_limiter/limiter_enabled`,
 		action:"generic /sys/kernel/msm_limiter/limiter_enabled",
 	}},
 	{ SSeekBar:{
        		title:"CPU0 Max Frequency",
-		description:"Set the maximum frequency the CPU0 scales up to. CPU0 is used for most critical work, it is recommended not to reduce this frequency below 1.7 GHz,",
+		description:"Set the maximum frequency the CPU0 scales up to. CPU0 is used for most critical kernel tasks, it is recommended not to reduce this frequency below 1.7 GHz,",
 		default:`cat /sys/kernel/msm_limiter/resume_max_freq_0`,
 		action:"generic /sys/kernel/msm_limiter/resume_max_freq_0",
 		values:{
@@ -173,8 +173,9 @@ cat << CTAG
        		title:"CPU0 Input Boost Frequency",
 		description:"Set the input boost frequency for CPU0.",
 		default:1497600,
-		action:"cpuboost 0",
+		action:"cpuboostibf 0",
 		values:{
+			0:"Disabled",
 `
 			while read FREQ TIME; do
 				LABEL=$(expr $FREQ / 1000)
@@ -187,8 +188,9 @@ cat << CTAG
        		title:"CPU1 Input Boost Frequency",
 		description:"Set the input boost frequency for CPU1.",
 		default:1497600,
-		action:"cpuboost 1",
+		action:"cpuboostibf 1",
 		values:{
+			0:"Disabled",
 `
 			while read FREQ TIME; do
 				LABEL=$(expr $FREQ / 1000)
@@ -201,8 +203,9 @@ cat << CTAG
        		title:"CPU2 Input Boost Frequency",
 		description:"Set the input boost frequency for CPU2.",
 		default:1497600,
-		action:"cpuboost 2",
+		action:"cpuboostibf 2",
 		values:{
+			0:"Disabled",
 `
 			while read FREQ TIME; do
 				LABEL=$(expr $FREQ / 1000)
@@ -215,8 +218,9 @@ cat << CTAG
        		title:"CPU3 Input Boost Frequency",
 		description:"Set the input boost frequency for CPU3.",
 		default:1497600,
-		action:"cpuboost 3",
+		action:"cpuboostibf 3",
 		values:{
+			0:"Disabled",
 `
 			while read FREQ TIME; do
 				LABEL=$(expr $FREQ / 1000)
@@ -251,19 +255,15 @@ cat << CTAG
 		default:0,
 		action:"boolean /sys/module/cpu_boost/parameters/wakeup_boost",
 	}},
-	`if [ -f "/sys/devices/system/cpu/sched_mc_power_savings" ]; then
-	SMPS=\`$BB cat /sys/devices/system/cpu/sched_mc_power_savings\`
-		$BB echo '{ SPane:{
-			title:"CPU Multicore Power Saving",
-			description:"Try to group tasks into the least cores possible. The higher the value, the more aggressive the grouping."
-		}},
-		{ SOptionList:{
-			default:'$SMPS',
-			action:"generic /sys/devices/system/cpu/sched_mc_power_savings",
-			values:{ 0:"Disabled", 1:"Enabled", 2:"Aggressive"
-			}
-		}},'
-	fi`
+	{ STitleBar:{
+		title:"Misc Tuning"
+	}},
+	{ SCheckBox:{
+		label:"PE-WQ",
+		description:"Enabling Power-efficient Workqueues will help to reduce power consumption at the cost of slight performance overhead. By enabling this, PE workqueues are used for unbound scheduled work to save load on sibling CPU cores and queuing work on CPU 0.",
+		default:0,
+		action:"boolean /sys/module/workqueue/parameters/power_efficient",
+	}},
 	{ STitleBar:{
 		title:"CPU Governor"
 	}},
@@ -292,6 +292,7 @@ cat << CTAG
 				do:REFRESH,
 				to:"/sys/devices/system/cpu/cpufreq"
 			}
+
 		]
         }},
         { SOptionList:{
@@ -397,7 +398,11 @@ cat << CTAG
 						"cpu_utilization",
 						"sampling_rate_min",
 						"up_threshold_h",
-						"up_threshold_l"
+						"up_threshold_l",
+						"multi_phase_freq_tbl",
+						"profile_list",
+						"version_profiles",
+						"profile"
 					]
 				}
 			}
