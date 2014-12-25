@@ -69,7 +69,7 @@ cat << CTAG
 			fi`
 			`[ -d "/sys/class/misc/soundcontrol" ] && SC=/sys/class/misc/soundcontrol;
 			[ -d "/sys/devices/virtual/misc/soundcontrol" ] && SC=/sys/devices/virtual/misc/soundcontrol;
-
+			
 			if [ -f "$SC/headset_boost" ]; then
 				HB=\`$BB cat $SC/headset_boost\`;
 				MB=\`$BB cat $SC/mic_boost\`;
