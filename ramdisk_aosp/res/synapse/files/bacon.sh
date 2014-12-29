@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 
 case "$1" in
 	CPUFrequencyList)
@@ -140,7 +140,7 @@ case "$1" in
 		$BB echo "1";
 	;;
 	HasHeadphonePowerAmp)
-		$BB echo "0";
+		$BB echo "1";
 	;;
 	HasTamperFlag)
 		$BB echo "1";

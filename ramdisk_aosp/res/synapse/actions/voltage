@@ -1,4 +1,4 @@
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 
 cpuread() {
 	while read FREQ UVOLT UNIT; do

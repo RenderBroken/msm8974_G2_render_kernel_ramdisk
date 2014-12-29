@@ -1,4 +1,4 @@
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 
 if [[ ! -z "$2" ]]; then
 	if [[ "$1" != *".dns"* ]]; then

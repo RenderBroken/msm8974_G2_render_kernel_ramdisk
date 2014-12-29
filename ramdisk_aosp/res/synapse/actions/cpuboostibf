@@ -1,14 +1,14 @@
 BB=/res/synapse/files/busybox;
 
-T=/sys/kernel/msm_mpdecision/conf/boost_freqs;
+T=/sys/module/cpu_boost/parameters/input_boost_freq;
 
 read() {
 	VALUE=-1;
 	NOW=`$BB cat $T`;
-	for BF in $NOW; do
+	for IBF in $NOW; do
 		VALUE=$(($VALUE+1));
 		if [ "$VALUE" -eq $1 ]; then
-			$BB echo $BF;
+			$BB echo ${IBF:2};
 			return
 		fi;
 	done;
@@ -16,7 +16,7 @@ read() {
 
 if [ -f $T ]; then
 	if [[ ! -z $2 ]]; then
-		$BB echo "$1 $2" > $T;
+		$BB echo "$1:$2" > $T;
 	fi;
 
 	$BB echo $(read $1);

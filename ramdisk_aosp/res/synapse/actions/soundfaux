@@ -1,15 +1,8 @@
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 DEVICE=/res/synapse/files/bacon.sh;
-PHONE=`getprop ro.product.device`;
 
-#base gpl_headphone_pa_gain
-if [ $PHONE == "mako" ]; then
-	BASE_HP_PA_GAIN=22; #Nexus 4
-elif [ $PHONE == "hammerhead" ]; then
-	BASE_HP_PA_GAIN=38; #Nexus 5
-else
-	BASE_HP_PA_GAIN=22; #Not defined
-fi;
+# BASE_HP_PA_GAIN=22; #Nexus 4
+BASE_HP_PA_GAIN=38; #Nexus 5 / G2
 
 LG_Stock() {
 CAM_MIC_GAIN="0 255";
@@ -64,6 +57,10 @@ if [ -f $1 ]; then
 		$BB echo 0 > /sys/kernel/sound_control_3/gpl_sound_control_locked;
 
 		if [ "$1" == "/res/synapse/files/sound_prof" ]; then
+
+			$BB mount -t rootfs -o remount,rw rootfs;
+			$BB mount -o remount,rw /;
+
 			$BB echo $2 > $1;
 
 			if [ $2 != "Custom" ]; then
@@ -110,7 +107,7 @@ if [ -f $1 ]; then
 
 			$BB echo "$V $V $H" > $1;
 		fi;
-		#$BB echo 1 > /sys/kernel/sound_control_3/gpl_sound_control_locked;
+		$BB echo 1 > /sys/kernel/sound_control_3/gpl_sound_control_locked;
 	fi;
 
 	PATH=$1;
@@ -130,5 +127,3 @@ if [ -f $1 ]; then
 		fi;
 	fi;
 fi;
-
-#if [ $((num - base)) -ge -6 ] && [ $((num - base)) -le 6 ]; then
