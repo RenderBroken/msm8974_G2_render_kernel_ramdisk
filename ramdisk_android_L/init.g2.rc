@@ -18,16 +18,22 @@ on init
     mkdir /factory 0775 system system
     mkdir /persist-lg 0755 system system
     mkdir /mpt 0755 system system
+    mkdir /storage/sdcard1 0700 root root
+    mkdir /mnt/media_rw/sdcard1 0700 media_rw media_rw
 
     export EXTERNAL_STORAGE /storage/emulated/legacy
     export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
     export EMULATED_STORAGE_TARGET /storage/emulated
+    export SECONDARY_STORAGE /storage/sdcard1
+    export EXTERNAL_STORAGE2 /storage/sdcard1
+    export EXTERNAL_STORAGE3 /storage/sdcard1
 
     # Support legacy paths
     symlink /storage/emulated/legacy /sdcard
     symlink /storage/emulated/legacy /mnt/sdcard
     symlink /storage/emulated/legacy /storage/sdcard0
     symlink /mnt/shell/emulated/0 /storage/emulated/legacy
+    symlink /storage/sdcard1 /sdcard1
 
     # Setup custom emergency number list based on
     # the MCC. This is needed by RIL.
@@ -45,11 +51,22 @@ on charger-fs
     start rmt_storage
 
 on fs
+    # F2FS Script - RenderBroken
+    chmod 0777 /sbin/f2fs/data_system.sh
+    wait /dev/block/platform/msm_sdcc.1/by-name/system
+    wait /dev/block/platform/msm_sdcc.1/by-name/userdata
+    exec /sbin/f2fs/data_system.sh
+    wait /dev/block/platform/msm_sdcc.1/by-name/cache
+    wait /dev/block/platform/msm_sdcc.1/by-name/cache
+    wait /dev/block/platform/msm_sdcc.1/by-name/cache
+    chmod 0777 /sbin/f2fs/cache.sh
+    exec /sbin/f2fs/cache.sh
+    
     mount_all ./fstab.g2
     restorecon_recursive /sns
     write /sys/kernel/boot_adsp/boot 1
     setprop ro.crypto.fuse_sdcard true
-
+    
 on early-boot
     # set RLIMIT_MEMLOCK to 64MB
     setrlimit 8 67108864 67108864
@@ -442,6 +459,10 @@ service time_daemon /system/bin/time_daemon
     group root
 
 service fuse_usb /system/bin/sdcard -u 1023 -g 1023 /mnt/media_rw/usb /storage/usb
+    class late_start
+    disabled
+
+service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/sdcard1 /storage/sdcard1
     class late_start
     disabled
 
