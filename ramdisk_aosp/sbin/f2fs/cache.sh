@@ -13,7 +13,7 @@ fi;
 if [ "$CACHE" -eq "1" ]; then
 	$BB mount -t f2fs /dev/block/platform/msm_sdcc.1/by-name/cache /cache -o nosuid,nodev;
 else
-	$BB mount -t ext4 /dev/block/platform/msm_sdcc.1/by-name/cache /cache -o noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc,journal_async_commit,errors=panic wait,check
+	$BB mount -t ext4 /dev/block/platform/msm_sdcc.1/by-name/cache /cache -o nosuid,nodev,barrier=1,noauto_da_alloc,errors=continue
 fi;
 
 if [ ! -e /cache/lost+found ]; then
