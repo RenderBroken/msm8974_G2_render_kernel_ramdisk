@@ -1,4 +1,4 @@
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 SQL3=/res/synapse/sqlite3;
 
 SYNAPSE_SD_DIR=/sdcard/Synapse;

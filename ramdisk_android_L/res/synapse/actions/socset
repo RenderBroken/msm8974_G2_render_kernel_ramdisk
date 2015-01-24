@@ -1,4 +1,4 @@
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 
 [ -d "/sys/module/pm_8x60" ] && PM=/sys/module/pm_8x60;
 [ -d "/sys/module/msm_pm" ] && PM=/sys/module/msm_pm;

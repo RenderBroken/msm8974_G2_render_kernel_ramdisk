@@ -1,4 +1,4 @@
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 DEVICE=/res/synapse/files/bacon.sh;
 
 if [ -f $1 ]; then

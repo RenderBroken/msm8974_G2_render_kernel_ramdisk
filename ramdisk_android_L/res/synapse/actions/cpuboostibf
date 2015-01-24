@@ -1,4 +1,4 @@
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 
 T=/sys/module/cpu_boost/parameters/input_boost_freq;
 

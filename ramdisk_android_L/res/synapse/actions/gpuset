@@ -1,4 +1,4 @@
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 DEVICE=/res/synapse/files/bacon.sh;
 
 case $1 in

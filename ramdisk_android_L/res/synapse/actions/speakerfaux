@@ -1,4 +1,4 @@
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 
 SPEAKER=/sys/bus/i2c/devices/0-0058;
 

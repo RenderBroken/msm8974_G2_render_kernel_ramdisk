@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 
 case "$1" in
 	CPUFrequencyList)

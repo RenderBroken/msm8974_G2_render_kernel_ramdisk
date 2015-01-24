@@ -1,4 +1,4 @@
-BB=/res/synapse/files/busybox;
+BB=/sbin/busybox;
 
 T=/sys/devices/virtual/input/lge_touch/accuracy;
 
