@@ -10,18 +10,19 @@ BB=/sbin/busybox
 # CPU-Boost Settings
 #
 echo 20 > /sys/module/cpu_boost/parameters/boost_ms
-echo 1728000 > /sys/module/cpu_boost/parameters/sync_threshold
-echo 1497600 > /sys/module/cpu_boost/parameters/input_boost_freq
+echo 1497600 > /sys/module/cpu_boost/parameters/sync_threshold
+echo 0:1190400 1:1190400 2:0 3:0 > /sys/module/cpu_boost/parameters/input_boost_freq
 echo 500 > /sys/module/cpu_boost/parameters/input_boost_ms
 echo 1 > /sys/module/cpu_boost/parameters/load_based_syncs
 echo 1 > /sys/module/cpu_boost/parameters/wakeup_boost
+echo 0 > /sys/module/cpu_boost/parameters/hotplug_boost
 
 ############################
 # MSM_Hotplug Settings
 #
 echo 2 > /sys/module/msm_hotplug/cpus_boosted
 echo 500 > /sys/module/msm_hotplug/down_lock_duration
-echo 2500 > /sys/module/msm_hotplug/boost_lock_duration
+echo 2000 > /sys/module/msm_hotplug/boost_lock_duration
 echo 200 5:100 50:50 350:200 > /sys/module/msm_hotplug/update_rates
 echo 400 > /sys/module/msm_hotplug/fast_lane_load
 echo 1 > /sys/module/msm_hotplug/max_cpus_online_susp
@@ -56,6 +57,22 @@ echo 30000 > /sys/devices/system/cpu/cpufreq/bacon/timer_rate
 echo 100000 > /sys/devices/system/cpu/cpufreq/bacon/max_freq_hysteresis
 echo 30000 > /sys/devices/system/cpu/cpufreq/bacon/timer_slack
 
+# Ondemand
+echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+echo ondemand > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+echo ondemand > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+echo ondemand > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
+echo 95 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
+echo 50000 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
+echo 1 > /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy
+echo 4 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor
+echo 10 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential
+echo 70 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_multi_core
+echo 3 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core
+echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/optimal_freq
+echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/sync_freq
+echo 80 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_any_cpu_load
+
 # Interactive
 echo interactive > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
 echo interactive > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
@@ -78,22 +95,6 @@ echo -1 > /sys/devices/system/cpu/cpufreq/interactive/timer_slack
 echo 75 > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_load
 echo 1574400 > /sys/devices/system/cpu/cpufreq/interactive/up_threshold_any_cpu_freq
 
-# Ondemand
-echo ondemand > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-echo ondemand > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
-echo ondemand > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
-echo ondemand > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
-echo 95 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold
-echo 50000 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate
-echo 1 > /sys/devices/system/cpu/cpufreq/ondemand/io_is_busy
-echo 4 > /sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor
-echo 10 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential
-echo 70 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_multi_core
-echo 3 > /sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core
-echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/optimal_freq
-echo 960000 > /sys/devices/system/cpu/cpufreq/ondemand/sync_freq
-echo 80 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold_any_cpu_load
-
 ############################
 # Set MAN-MAX Freq on boot
 #
@@ -107,6 +108,15 @@ echo 2265600 > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq
 echo 2265600 > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq
 
 ############################
+# MSM-Limiter Freq Tuning
+#
+echo 300000 > /sys/kernel/msm_limiter/suspend_min_freq_0
+echo 300000 > /sys/kernel/msm_limiter/suspend_min_freq_1
+echo 300000 > /sys/kernel/msm_limiter/suspend_min_freq_2
+echo 300000 > /sys/kernel/msm_limiter/suspend_min_freq_3
+echo 1267200 > /sys/kernel/msm_limiter/suspend_max_freq
+
+############################
 # Scheduler and Read Ahead
 #
 echo zen > /sys/block/mmcblk0/queue/scheduler
@@ -115,8 +125,8 @@ echo 2048 > /sys/block/mmcblk0/bdi/read_ahead_kb
 ############################
 # GPU Governor
 #
-echo simple_ondemand > /sys/class/devfreq/fdb00000.qcom,kgsl-3d0/governor
-echo 450000000 > /sys/devices/fdb00000.qcom,kgsl-3d0/devfreq/fdb00000.qcom,kgsl-3d0/max_freq
+echo msm-adreno-tz > /sys/class/devfreq/fdb00000.qcom,kgsl-3d0/governor
+echo 389000000 > /sys/devices/fdb00000.qcom,kgsl-3d0/devfreq/fdb00000.qcom,kgsl-3d0/max_freq
 
 ############################
 # LMK Tweaks
@@ -147,6 +157,7 @@ echo 1 > /sys/module/msm_thermal/parameters/enabled
 # Power Effecient Workqueues (Enable for battery)
 #
 echo 1 > /sys/module/workqueue/parameters/power_efficient
+echo 0 > /sys/module/subsystem_restart/parameters/enable_ramdumps
 
 ############################
 # Synapse Support
@@ -157,7 +168,7 @@ $BB mount -t rootfs -o remount,rw rootfs;
 $BB mount -o remount,rw /;
 
 # Cleanup.
-$BB rm -f /res/synapse/debug/*
+$BB rm -f /res/synapse/debug/* 
 
 # Make tmp folder
 $BB mkdir /tmp;
