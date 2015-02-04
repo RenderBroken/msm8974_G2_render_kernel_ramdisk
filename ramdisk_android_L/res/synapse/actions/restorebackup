@@ -23,8 +23,8 @@ if [ -d /data/data/com.af.synapse ]; then
 fi;
 
 reset_uci() {
-  /system/xbin/uci reset;
-  /system/xbin/uci;
+  /sbin/uci reset;
+  /sbin/uci;
 }
 
 case "$1" in
