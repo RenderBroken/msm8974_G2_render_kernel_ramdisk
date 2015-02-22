@@ -1,4 +1,4 @@
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 
 if [ -d /data/data/com.af.synapse ]; then
   SYNAPSE_SD_DIR=/sdcard/Synapse;

@@ -90,7 +90,7 @@ cat << CTAG
 					values:{ 0:"Disabled", 1:"Enabled"
 					}
 				}},
-				`if [ -f "/proc/sys/vm/extra_free_kbytes" ]; then
+				`if [ -f "/proc/sys/vm/extra_free_kbytes_0" ]; then
 					$BB echo '{ SSeekBar:{
 						title:"Extra Free Kilobytes",
 						unit:" kB",

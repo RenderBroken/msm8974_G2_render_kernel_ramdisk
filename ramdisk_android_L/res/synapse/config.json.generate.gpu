@@ -46,6 +46,15 @@ cat << CTAG
 				$BB echo '{ SPane:{
 					title:"Simple Governor Tunables"
 				}},'
+				if [ -f "/sys/module/simple_gpu_algorithm/parameters/simple_gpu_activate" ]; then
+					SIMPLE=\`$BB cat /sys/module/simple_gpu_algorithm/parameters/simple_gpu_activate/simple_gpu_activate\`
+					$BB echo '{ SCheckBox:{
+						label:"Enable",
+						description:"An add-on for MSM Adreno TZ GPU Governor. Developed by faux123.",
+						default:'$SIMPLE',
+						action:"generic /sys/module/simple_gpu_algorithm/parameters/simple_gpu_activate"
+					}},'
+				fi
 				if [ -f "/sys/module/simple_gpu_algorithm/parameters/simple_laziness" ]; then
 					LAZ=\`$BB cat /sys/module/simple_gpu_algorithm/parameters/simple_laziness\`
 					$BB echo '{ SSeekBar:{

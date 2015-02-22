@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
-BB=/sbin/busybox;
-DEVICE=`sh /res/synapse/files/bacon.sh`;
+BB=/res/synapse/files/busybox;
+DEVICE=`sh /res/synapse/files/g2.sh`;
 UCI_CONFIG=/res/synapse/config.json;
 UCI_ACTION=/res/synapse/actions/;
 UCI_FILES=/res/synapse/files/;
@@ -42,7 +42,7 @@ if [ ! -f $UCI_CONFIG ]; then
 	fi
 	
 	if [ ! -f $DEBUG/last_kmsg ]; then
-		LAST_KMSG=`$BB tail -n 1 /proc/last_kmsg`;
+		LAST_KMSG=`$BB tail -n 1 /proc/last_kmsg 2> /dev/null`;
 		$BB echo $LAST_KMSG > $DEBUG/last_kmsg;
 	fi
 	

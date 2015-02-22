@@ -1,8 +1,7 @@
-BB=/sbin/busybox;
-DEVICE=/res/synapse/files/bacon.sh;
+BB=/res/synapse/files/busybox;
+DEVICE=/res/synapse/files/g2.sh;
 
-# BASE_HP_PA_GAIN=22; #Nexus 4
-BASE_HP_PA_GAIN=38; #Nexus 5 / G2
+BASE_HP_PA_GAIN=`sh $DEVICE HeadphonePAValue`;
 
 LG_Stock() {
 CAM_MIC_GAIN="0 255";

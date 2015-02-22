@@ -1,4 +1,4 @@
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 INITD=/system/etc/init.d;
 
 if [ -f $1 ]; then

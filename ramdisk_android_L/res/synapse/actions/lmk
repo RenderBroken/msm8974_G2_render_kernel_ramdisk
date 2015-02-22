@@ -1,4 +1,4 @@
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 
 P=/sys/module/lowmemorykiller/parameters/minfree;
 

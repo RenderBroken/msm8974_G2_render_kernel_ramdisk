@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-BB=/sbin/busybox;
+BB=/res/synapse/files/busybox;
 
 case "$1" in
 	CPUFrequencyList)
@@ -323,5 +323,8 @@ case "$1" in
 	;;
 	LiveTCPCongestion)
 		$BB echo "`$BB cat /proc/sys/net/ipv4/tcp_congestion_control`";
+	;;
+	HeadphonePAValue)
+		$BB echo "22";
 	;;
 esac;
