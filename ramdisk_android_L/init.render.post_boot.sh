@@ -6,6 +6,8 @@ BB=/sbin/busybox
 # Custom Kernel Settings for Render Kernel!!
 #
 
+stop mpdecision
+
 ############################
 # MSM_Hotplug Settings
 #

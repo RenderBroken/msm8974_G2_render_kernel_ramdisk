@@ -220,6 +220,10 @@ on post-fs-data
 
     rm /data/local/tmp/adreno_config.txt
 
+    # communicate with mpdecision and thermald
+    mkdir /dev/socket/mpdecision 0770 system system
+    chmod 2770 /dev/socket/mpdecision
+
     # time_daemon storage
     mkdir /data/time/ 0700 system system
 
