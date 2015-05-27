@@ -1,0 +1,211 @@
+#!/bin/bash
+BUILD_TOP=$PWD
+# Kernel Details
+VER=Render-Kernel
+
+# Vars
+export LOCALVERSION=~`echo $VER`
+export ARCH=arm
+export SUBARCH=arm
+export KBUILD_BUILD_USER=RenderBroken
+export KBUILD_BUILD_HOST=RenderServer.net
+export CCACHE=ccache
+export CROSS_COMPILE=$BUILD_TOP/toolchains/arm-cortex_a15-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a15-linux-gnueabihf-
+
+build=$BUILD_TOP/zips/g2-zips/
+kernel="RenderKernel"
+buildtools=$BUILD_TOP/ramdisk/build-tools
+ozips=$buildtools/ozip
+kerneltype="zImage"
+jobcount="-j$(grep -c ^processor /proc/cpuinfo)"
+base=0x00000000
+pagesize=2048
+ramdisk_offset=0x05000000
+tags_offset=0x04800000
+CURRENTDATE=$(date +"%m-%d")
+
+echo "Pick variant..."
+select choice in d800 d801 d802 d803 ls980 vs980 f320x l01f
+do
+case "$choice" in
+	"d800")
+		variant="d800"
+		config="d800_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d800.lz4
+		break;;
+	"d801")
+		variant="d801"
+		config="d801_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d801.lz4
+		break;;
+	"d802")
+		variant="d802"
+		config="d802_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d802.lz4
+		break;;
+	"d803")
+		variant="d803"
+		config="d803_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d803.lz4
+		break;;
+	"ls980")
+		variant="ls980"
+		config="ls980_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/ls980.lz4
+		break;;
+	"vs980")
+		variant="vs980"
+		config="vs980_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/vs980.lz4
+		break;;
+	"f320x")
+		variant="f320x"
+		config="f320x_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/f320x.lz4
+		break;;
+	"l01f")
+		variant="l01f"
+		config="l01f_defconfig"
+#		ramdisk=$BUILD_TOP/ramdisk/ramdisk/f320x.lz4
+		break;;
+esac
+done
+
+echo "Panel variant..."
+select panel in lgd jdi
+do
+case "$panel" in
+	"lgd")
+		cmdline="'console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_lgd_cmd androidboot.selinux=permissive'"
+		break;;
+	"jdi")
+		cmdline="'console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_jdi_cmd androidboot.selinux=permissive'"
+		break;;
+esac
+done
+
+echo "Pick target..."
+select target in lg aosp
+do
+case "$target" in
+	"lg")
+		# Already set
+		rdflag=1
+		rom="LG"
+		break;;
+	"aosp")
+		rdflag=2
+		rom="LP"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk_android_L
+		break;;
+esac
+done
+
+# Begin commands
+#if [ -e rm -rf $BUILD_TOP/out/g2 ]; then 
+#rm -rf $BUILD_TOP/out/g2/*
+#else
+mkdir -p $BUILD_TOP/out/g2
+#fi
+
+echo "Checking for build..."
+if [ -f $ozips/boot.img ]; then
+	read -p "Previous build found, clean working directory..(y/n)? : " cchoice
+	case "$cchoice" in
+		y|Y )			
+			#rm -rf $ozips/boot.img
+			#rm -rf $ozips/system/lib/modules
+			#rm -rf arch/arm/boot/"$kerneltype"
+			mkdir -p $ozips/system/lib/modules
+			cd $BUILD_TOP/source
+			make clean && make mrproper
+			cd $BUILD_TOP
+			echo "Working directory cleaned...";;
+		n|N )
+			echo "Skipping...";;
+	esac
+	read -p "Begin build now..(y/n)? : " dchoice
+	case "$dchoice" in
+		y|Y)
+			cd $BUILD_TOP/source
+			make "$config"
+			make "$jobcount"
+			cd $BUILD_TOP
+			exit 0;;
+		n|N )
+			echo "Skipping...";;
+	esac
+fi
+if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
+	cp $BUILD_TOP/source/arch/arm/boot/$kerneltype $BUILD_TOP/out/g2/$kerneltype
+	#rm -rf $ozips/system/modules/*
+	mkdir -p $ozips/system/lib/modules
+	find $BUILD_TOP/source -name "*.ko" -exec cp {} $ozips/system/lib/modules \;
+else
+	echo "Nothing has been made..."
+	read -p "Clean working directory..(y/n)? : " achoice
+	case "$achoice" in
+		y|Y )
+			#rm -rf $ozips/boot.img
+			#rm -rf $ozips/system/lib/modules
+			#rm -rf arch/arm/boot/"$kerneltype"
+			mkdir -p $ozips/system/lib/modules
+			cd $BUILD_TOP/source
+			make clean && make mrproper
+			cd $BUILD_TOP
+			echo "Working directory cleaned...";;
+		n|N )
+			echo "Skipping Step...";;
+	esac
+	read -p "Begin build now..(y/n)? : " bchoice
+	case "$bchoice" in
+		y|Y)
+			cd $BUILD_TOP/source
+			make "$config"
+			make "$jobcount" CONFIG_DEBUG_SECTION_MISMATCH=y
+			cd $BUILD_TOP
+			exit 0;;
+		n|N )
+			echo "Skipping...";;
+	esac
+fi
+
+if [ $rdflag = 1 ]; then
+	echo "Using prebuilt ramdisk..."
+elif [ $rdflag = 2 ]; then
+	echo "Creating AOSP Ramdisk..."
+	$buildtools/mkbootfs $ramdisk | gzip > $BUILD_TOP/out/g2/ramdisk.gz
+	ramdisk=$BUILD_TOP/out/g2/ramdisk.gz
+else
+	echo "No ramdisk found..."
+	exit 0;
+fi
+
+echo "Making DT.img..."
+if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
+	$buildtools/dtbTool -s 2048 -o $BUILD_TOP/out/g2/dt.img $BUILD_TOP/source/arch/arm/boot/
+else
+	echo "No build found..."
+	exit 0;
+fi
+
+echo "Making boot.img..."
+if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
+	$buildtools/mkbootimg --kernel $BUILD_TOP/out/g2/$kerneltype --ramdisk $ramdisk --cmdline $cmdline --base $base --pagesize $pagesize --offset $ramdisk_offset --tags-addr $tags_offset --dt $BUILD_TOP/out/g2/dt.img -o $ozips/boot.img
+else
+	echo "No build found..."
+	exit 0;
+fi
+
+echo "Kernel Bump Boot.img..."
+sh $buildtools/kernel_bump.sh
+mv $ozips/boot_bumped.img $ozips/boot.img
+echo "Kernel BUMP done!";
+
+#echo "Zipping..."
+#cd ozip
+#zip -r ../"$kernel"-"$rom"_"$variant"-bumped-R.zip .
+#mv ../"$kernel"-"$rom"_"$variant"-bumped-R.zip $build
+#cd ..
+#rm -rf $BUILD_TOP/source/out/g2/*
+echo "Done..."
