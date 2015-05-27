@@ -12,7 +12,7 @@ export KBUILD_BUILD_HOST=RenderServer.net
 export CCACHE=ccache
 export CROSS_COMPILE=$BUILD_TOP/toolchains/arm-cortex_a15-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a15-linux-gnueabihf-
 
-build=$BUILD_TOP/zips/g2-zips/
+build=$BUILD_TOP/zips/g2-zips
 kernel="RenderKernel"
 buildtools=$BUILD_TOP/ramdisk/build-tools
 ozips=$buildtools/ozip
@@ -76,10 +76,10 @@ select panel in lgd jdi
 do
 case "$panel" in
 	"lgd")
-		cmdline="'console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_lgd_cmd androidboot.selinux=permissive'"
+		cmdline="console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_lgd_cmd androidboot.selinux=permissive"
 		break;;
 	"jdi")
-		cmdline="'console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_jdi_cmd androidboot.selinux=permissive'"
+		cmdline="console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_jdi_cmd androidboot.selinux=permissive"
 		break;;
 esac
 done
@@ -102,21 +102,15 @@ esac
 done
 
 # Begin commands
-#if [ -e rm -rf $BUILD_TOP/out/g2 ]; then 
-#rm -rf $BUILD_TOP/out/g2/*
-#else
-mkdir -p $BUILD_TOP/out/g2
-#fi
+mkdir -p $BUILD_TOP/out/g2/ozip
+zip_out=$BUILD_TOP/out/g2/ozip
+cp -r $ozips/* $zip_out/
 
 echo "Checking for build..."
-if [ -f $ozips/boot.img ]; then
+if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
 	read -p "Previous build found, clean working directory..(y/n)? : " cchoice
 	case "$cchoice" in
 		y|Y )			
-			#rm -rf $ozips/boot.img
-			#rm -rf $ozips/system/lib/modules
-			#rm -rf arch/arm/boot/"$kerneltype"
-			mkdir -p $ozips/system/lib/modules
 			cd $BUILD_TOP/source
 			make clean && make mrproper
 			cd $BUILD_TOP
@@ -130,28 +124,23 @@ if [ -f $ozips/boot.img ]; then
 			cd $BUILD_TOP/source
 			make "$config"
 			make "$jobcount"
-			cd $BUILD_TOP
-			exit 0;;
+			cd $BUILD_TOP;;
 		n|N )
 			echo "Skipping...";;
 	esac
 fi
 if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
-	cp $BUILD_TOP/source/arch/arm/boot/$kerneltype $BUILD_TOP/out/g2/$kerneltype
-	#rm -rf $ozips/system/modules/*
-	mkdir -p $ozips/system/lib/modules
-	find $BUILD_TOP/source -name "*.ko" -exec cp {} $ozips/system/lib/modules \;
+	cp $BUILD_TOP/source/arch/arm/boot/$kerneltype  $BUILD_TOP/out/g2/$kerneltype
+	rm -rf $zip_out/system/modules/*
+	mkdir -p $zip_out/system/lib/modules
+	find $BUILD_TOP/source -name "*.ko" -exec cp {} $zip_out/system/lib/modules \;
 else
 	echo "Nothing has been made..."
 	read -p "Clean working directory..(y/n)? : " achoice
 	case "$achoice" in
 		y|Y )
-			#rm -rf $ozips/boot.img
-			#rm -rf $ozips/system/lib/modules
-			#rm -rf arch/arm/boot/"$kerneltype"
-			mkdir -p $ozips/system/lib/modules
 			cd $BUILD_TOP/source
-			make clean && make mrproper
+			make clean > /dev/null && make mrproper > /dev/null
 			cd $BUILD_TOP
 			echo "Working directory cleaned...";;
 		n|N )
@@ -161,10 +150,9 @@ else
 	case "$bchoice" in
 		y|Y)
 			cd $BUILD_TOP/source
-			make "$config"
-			make "$jobcount" CONFIG_DEBUG_SECTION_MISMATCH=y
-			cd $BUILD_TOP
-			exit 0;;
+			make "$config" > /dev/null
+			make "$jobcount" CONFIG_DEBUG_SECTION_MISMATCH=y > /dev/null
+			cd $BUILD_TOP;;
 		n|N )
 			echo "Skipping...";;
 	esac
@@ -191,21 +179,30 @@ fi
 
 echo "Making boot.img..."
 if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
-	$buildtools/mkbootimg --kernel $BUILD_TOP/out/g2/$kerneltype --ramdisk $ramdisk --cmdline $cmdline --base $base --pagesize $pagesize --offset $ramdisk_offset --tags-addr $tags_offset --dt $BUILD_TOP/out/g2/dt.img -o $ozips/boot.img
+	$buildtools/mkbootimg --kernel $BUILD_TOP/out/g2/$kerneltype --ramdisk $ramdisk --cmdline "$cmdline" --base $base --pagesize $pagesize --offset $ramdisk_offset --tags-addr $tags_offset --dt $BUILD_TOP/out/g2/dt.img -o $zip_out/boot.img
 else
 	echo "No build found..."
 	exit 0;
 fi
 
 echo "Kernel Bump Boot.img..."
-sh $buildtools/kernel_bump.sh
-mv $ozips/boot_bumped.img $ozips/boot.img
-echo "Kernel BUMP done!";
+PYTHON_CHECK=$(ls -la /usr/bin/python2 | wc -l);
+BOOT_IMAGE_LOCATION=$zip_out/boot.img;
+
+if [ "$PYTHON_CHECK" -eq "1" ]; then
+	/usr/bin/python2 $buildtools/open_bump.py $BOOT_IMAGE_LOCATION;
+	mv $zip_out/boot_bumped.img $zip_out/boot.img
+	echo "Kernel BUMP done!";
+else
+	echo "you dont have PYTHON2.x script will not work!!!";
+	exit 1;
+fi;
 
 #echo "Zipping..."
-#cd ozip
-#zip -r ../"$kernel"-"$rom"_"$variant"-bumped-R.zip .
-#mv ../"$kernel"-"$rom"_"$variant"-bumped-R.zip $build
-#cd ..
-#rm -rf $BUILD_TOP/source/out/g2/*
+cd $zip_out
+zip -r ./"$kernel"-"$rom"_"$variant"-bumped-R.zip .
+mkdir -p $build/$variant/$CURRENTDATE/
+mv $zip_out/"$kernel"-"$rom"_"$variant"-bumped-R.zip $build/$variant/$CURRENTDATE/"$kernel"-"$rom"_"$variant"-bumped-R.zip
+cd $BUILD_TOP
+rm -rf $BUILD_TOP/out
 echo "Done..."
