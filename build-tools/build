@@ -1,0 +1,283 @@
+#!/bin/bash
+BUILD_TOP=$PWD
+# Kernel Details
+VER=Render-Kernel
+
+# Vars
+export LOCALVERSION=~`echo $VER`
+export ARCH=arm
+export SUBARCH=arm
+export KBUILD_BUILD_USER=RenderBroken
+export KBUILD_BUILD_HOST=RenderServer.net
+export CCACHE=ccache
+export CROSS_COMPILE=$BUILD_TOP/toolchains/arm-cortex_a15-linux-gnueabihf-linaro_4.9/bin/arm-cortex_a15-linux-gnueabihf-
+
+build=$BUILD_TOP/zips/g2-zips
+kernel="RenderKernel"
+buildtools=$BUILD_TOP/ramdisk/build-tools
+ozips=$buildtools/ozip
+kerneltype="zImage"
+jobcount="-j$(grep -c ^processor /proc/cpuinfo)"
+base=0x00000000
+pagesize=2048
+ramdisk_offset=0x05000000
+tags_offset=0x04800000
+CURRENTDATE=$(date +"%m-%d")
+zip_out=$BUILD_TOP/out/g2/ozip
+mkdir -p $BUILD_TOP/out/g2/ozip
+cp -r $ozips/* $zip_out/
+
+function clobber(){
+			cd $BUILD_TOP/source
+			make clean > /dev/null && make mrproper > /dev/null
+			cd $BUILD_TOP
+			echo "Working directory cleaned..."
+}
+
+function compilekernel(){
+			cd $BUILD_TOP/source
+			make "$config" > /dev/null
+			time make "$jobcount" CONFIG_DEBUG_SECTION_MISMATCH=y > /dev/null
+			cd $BUILD_TOP
+}
+
+function lunch(){
+mkdir -p $BUILD_TOP/out/g2/ozip
+cp -r $ozips/* $zip_out/
+echo "Pick variant..."
+select choice in d800 d801 d802 d803 ls980 vs980 f320x l01f
+do
+case "$choice" in
+	"d800")
+		variant="d800"
+		config="d800_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d800.lz4
+		break;;
+	"d801")
+		variant="d801"
+		config="d801_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d801.lz4
+		break;;
+	"d802")
+		variant="d802"
+		config="d802_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d802.lz4
+		break;;
+	"d803")
+		variant="d803"
+		config="d803_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/d803.lz4
+		break;;
+	"ls980")
+		variant="ls980"
+		config="ls980_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/ls980.lz4
+		break;;
+	"vs980")
+		variant="vs980"
+		config="vs980_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/vs980.lz4
+		break;;
+	"f320x")
+		variant="f320x"
+		config="f320x_defconfig"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk/f320x.lz4
+		break;;
+	"l01f")
+		variant="l01f"
+		config="l01f_defconfig"
+#		ramdisk=$BUILD_TOP/ramdisk/ramdisk/f320x.lz4
+		break;;
+esac
+done
+
+echo "Panel variant..."
+select panel in lgd jdi
+do
+case "$panel" in
+	"lgd")
+		cmdline="console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_lgd_cmd androidboot.selinux=permissive"
+		break;;
+	"jdi")
+		cmdline="console=ttyHSL0,115200,n8 androidboot.hardware=g2 user_debug=31 msm_rtb.filter=0x0 mdss_mdp.panel=1:dsi:0:qcom,mdss_dsi_g2_jdi_cmd androidboot.selinux=permissive"
+		break;;
+esac
+done
+
+echo "Pick target..."
+select target in lg aosp
+do
+case "$target" in
+	"lg")
+		# Already set
+		rdflag=1
+		rom="LG"
+		break;;
+	"aosp")
+		rdflag=2
+		rom="LP"
+		ramdisk=$BUILD_TOP/ramdisk/ramdisk_android_L
+		break;;
+esac
+done
+}
+
+function compile(){
+echo "Checking for build..."
+if [ -z $variant ]; then
+	echo "Execute lunch then please choose your carrier variant.... "
+	lunch
+fi
+if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
+	cp $BUILD_TOP/source/arch/arm/boot/$kerneltype  $BUILD_TOP/out/g2/$kerneltype
+	rm -rf $zip_out/system/modules/*
+	mkdir -p $zip_out/system/lib/modules
+	find $BUILD_TOP/source -name "*.ko" -exec cp {} $zip_out/system/lib/modules \;
+	read -p "Previous build found, clean working directory..(y/n)? : " cchoice
+	case "$cchoice" in
+		y|Y )			
+			clobber;;
+		n|N )
+			echo "Skipping...";;
+	esac
+	read -p "Begin build now..(y/n)? : " dchoice
+	case "$dchoice" in
+		y|Y)
+			compilekernel;;
+		n|N )
+			echo "Skipping...";;
+	esac
+else
+	echo "Nothing has been made..."
+	read -p "Clean working directory..(y/n)? : " achoice
+	case "$achoice" in
+		y|Y )
+			clobber;;
+		n|N )
+			echo "Skipping Step...";;
+	esac
+	read -p "Begin build now..(y/n)? : " bchoice
+	case "$bchoice" in
+		y|Y)
+			compilekernel;;
+		n|N )
+			echo "Skipping...";;
+	esac
+fi
+}
+
+function checkramdisk(){
+if [ -z $variant ]; then
+	echo "Execute lunch then please choose your carrier variant.... "
+	lunch
+fi
+if [ -z $rdflag ]; then
+	echo "Please execute lunch to choose your carrier and variant"
+	lunch
+fi
+if [ $rdflag = 1 ]; then
+	echo "Using prebuilt ramdisk..."
+elif [ $rdflag = 2 ]; then
+	echo "Creating AOSP Ramdisk..."
+	mkdir -p $BUILD_TOP/out/g2/
+	$buildtools/mkbootfs $ramdisk | gzip > $BUILD_TOP/out/g2/ramdisk.gz
+	ramdisk=$BUILD_TOP/out/g2/ramdisk.gz
+else
+	echo "No ramdisk found..."
+	echo "Please execute lunch to choose your carrier and variant"
+	lunch
+	break;
+fi
+}
+
+function checkdtimg(){
+echo "Making DT.img..."
+if [ -f $BUILD_TOP/source/arch/arm/boot/$kerneltype ]; then
+	mkdir -p $BUILD_TOP/out/g2
+	$buildtools/dtbTool -s 2048 -o $BUILD_TOP/out/g2/dt.img $BUILD_TOP/source/arch/arm/boot/
+else
+	echo "No dt.img found..."
+	echo "Please lunch your variant and compile first"
+	lunch
+	break;
+fi
+}
+
+function checkboot(){
+echo "Making boot.img..."
+if [ -f $BUILD_TOP/out/g2/dt.img ]; then
+	cp $BUILD_TOP/source/arch/arm/boot/$kerneltype  $BUILD_TOP/out/g2/$kerneltype
+	$buildtools/mkbootimg --kernel $BUILD_TOP/out/g2/$kerneltype --ramdisk $ramdisk --cmdline "$cmdline" --base $base --pagesize $pagesize --offset $ramdisk_offset --tags-addr $tags_offset --dt $BUILD_TOP/out/g2/dt.img -o $zip_out/boot.img
+else
+	echo "No boot.img built ..."
+	checkdtimg
+	break;
+fi
+}
+
+function bumpboot(){
+echo "Kernel Bump Boot.img..."
+PYTHON_CHECK=$(ls -la /usr/bin/python2 | wc -l);
+BOOT_IMAGE_LOCATION=$zip_out/boot.img;
+if [ -f $zip_out/boot.img ]; then
+if [ "$PYTHON_CHECK" -eq "1" ]; then
+	/usr/bin/python2 $buildtools/open_bump.py $BOOT_IMAGE_LOCATION;
+	mv $zip_out/boot_bumped.img $zip_out/boot.img
+	echo "Kernel BUMP done!";
+else
+	echo "you dont have PYTHON2.x script will not work!!!";
+	exit 1;
+fi
+else
+	echo "No boot.img built ..."
+	echo "Please compile first then checkboot again"
+	checkramdisk
+	checkdtimg
+	checkboot
+	break;
+fi
+}
+
+function buildzip(){
+#echo "Zipping..."
+cd $zip_out
+zip -r ./"$kernel"-"$rom"_"$variant"-bumped-R.zip .
+mkdir -p $build/$variant/$CURRENTDATE/
+mv $zip_out/"$kernel"-"$rom"_"$variant"-bumped-R.zip $build/$variant/$CURRENTDATE/"$kernel"-"$rom"_"$variant"-bumped-R.zip
+cd $build/$variant/$CURRENTDATE/
+md5sum "$kernel"-"$rom"_"$variant"-bumped-R.zip > "$kernel"-"$rom"_"$variant"-bumped-R.zip.md5
+cd $BUILD_TOP
+echo "Done..."
+}
+
+function build_render(){
+		lunch
+		compile
+		checkramdisk
+		checkdtimg
+		checkboot
+		bumpboot
+		buildzip
+		rm -rf $BUILD_TOP/out
+		read -p "Clean working directory..( Y|y / N|n )? : " achoice
+		case "$achoice" in
+		y|Y )
+			clobber;;
+		n|N )
+			echo "Working directory cleaning skipped...";;
+		esac
+		clear
+		echo "Enjoy RenderKernel $rom for $variant"
+}
+
+if [ "x$SHELL" != "x/bin/bash" ]; then
+    case `ps -o command -p $$` in
+        *bash*)
+            ;;
+        *zsh*)
+            ;;
+        *)
+            echo "WARNING: Only bash and zsh are supported, use of other shell may lead to erroneous results"
+            ;;
+    esac
+fi
